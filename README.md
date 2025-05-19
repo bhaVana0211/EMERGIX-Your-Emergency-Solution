@@ -12,8 +12,8 @@ Instructions to run the App :
 
 ![image alt](https://github.com/bhaVana0211/EMERGIX-Your-Emergency-Solution/blob/b3b74eddbee77bb13a2520fa00f1dec06277f0df/E1.jpg)
 
-![image alt](https://github.com/bhaVana0211/EMERGIX-Your-Emergency-Solution/blob/ba8410dd518427a44077a000067027ad27bc0256/Screenshot%202025-03-17%20151046.png)
+![image alt](https://github.com/bhaVana0211/EMERGIX-Your-Emergency-Solution/blob/4e7230ae9ccc589c4213ca7fea0e3c07959a5276/E2.jpg)
 
 ![image alt](https://github.com/bhaVana0211/EMERGIX-Your-Emergency-Solution/blob/ba8410dd518427a44077a000067027ad27bc0256/Screenshot%202025-03-17%20151118.png)
 
-![image alt](https://github.com/bhaVana0211/EMERGIX-Your-Emergency-Solution/blob/ba8410dd518427a44077a000067027ad27bc0256/Screenshot%202025-03-17%20151141.png)
+
