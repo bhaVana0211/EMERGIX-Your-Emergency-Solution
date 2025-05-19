@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hospital Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='3rdpage.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+
+    <form method="POST">
+        <label for="city">Select City:</label>
+        <select name="city" id="city">
+            <option value="">All</option>
+            {% for city in cities %}
+                <option value="{{ city }}" {% if selected_city == city %}selected{% endif %}>{{ city }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Search</button>
+    </form>
+
+    <div class="hospital-list"></div>{% if selected_city and hospitals %}
+    {% for hospital_item in hospitals %}
+        <a href="{{ url_for('hospital_details', hospital_id=hospital_item.id) }}">
+            <div id="box1">
+                {{ hospital_item.name }}
+            </div>
+        </a>
+    {% endfor %}
+    {% endif %}
+
+    {% if selected_city and session.get('is_management') %}
+        <a href="{{ url_for('add_hospital', city=selected_city) }}">Add Hospital in {{ selected_city }}</a>
+    {% endif %}
+
+
+
+</body>
+</html>
