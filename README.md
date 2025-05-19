@@ -10,7 +10,7 @@ Instructions to run the App :
 5. To login As MANAGEMENT use Username: management Password: management123
 
 
-![image alt](https://github.com/bhaVana0211/EMERGIX-Your-Emergency-Solution/blob/ba8410dd518427a44077a000067027ad27bc0256/Screenshot%202025-03-17%20151016.png)
+![image alt](https://github.com/bhaVana0211/EMERGIX-Your-Emergency-Solution/blob/b3b74eddbee77bb13a2520fa00f1dec06277f0df/E1.jpg)
 
 ![image alt](https://github.com/bhaVana0211/EMERGIX-Your-Emergency-Solution/blob/ba8410dd518427a44077a000067027ad27bc0256/Screenshot%202025-03-17%20151046.png)
 
