@@ -1,0 +1,61 @@
+
+body {
+    font-family: 'Courier New', Courier, monospace;
+}
+#box1{
+    position: absolute;
+    height: 120px;
+    width: 280px;
+    top: 310px;
+    right: 140px;
+    border-radius: 20px;
+    font-size: 25px;
+    color: rgb(13, 12, 12);
+    font-family: 'Courier New', Courier, monospace;
+    border-width: 5px;
+    padding-top: 3%;
+    background-color: rgb(230, 234, 238);
+    transition-property:all ;
+    transition-duration: .5s;
+}
+
+
+
+#box2{
+    position: absolute;
+    height: 120px;
+    width: 280px;
+    top: 450px;
+    right: 140px;
+    border-radius: 20px;
+    font-size: 25px;
+    padding-top: 2%;
+    color: rgb(14, 13, 13);
+    background-color: rgb(244, 247, 250);
+    font-family: 'Courier New', Courier, monospace;
+    border-width: 5px;
+   
+}
+
+body{
+
+    background-image: url("images/2pagee.png");
+    
+    background-size: cover;
+}
+
+.a{
+    position: absolute;
+    top: 328px;
+    right: 270px;
+    font-size: 30px;
+}
+.b{
+    position: absolute;
+    top: 470px;
+    right: 270px;
+    font-size:30px ;
+
+}
+
+

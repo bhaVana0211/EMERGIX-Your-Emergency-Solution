@@ -1,0 +1,21 @@
+body {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    background-color: #f4f4f4;
+    text-align: left;
+}
+body{
+    background-image: url("images/hospital_details.png");
+    background-size: cover;
+}
+button[type="book"] {
+    width: 5%;
+    height: 20px;
+    padding: 1px;
+    background-color: #4CAF50;
+    color: #fdfafa;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    display: block;
+}

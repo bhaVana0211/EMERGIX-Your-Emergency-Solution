@@ -1,0 +1,73 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+input[type="text"], input[type="password"] {
+   position: absolute;
+   left: 68%;
+   top: 42%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 300px;
+}
+input[type="password"] {
+    position: absolute;
+    left: 68%;
+    top: 50%;
+     padding: 10px;
+     margin-bottom: 20px;
+     border: 1px solid #ccc;
+     border-radius: 5px;
+     width: 300px;
+}
+p{
+    position: absolute;
+    left: 72%;
+    top: 58%;
+    font-size: small;
+    
+}
+button {
+    position: absolute;
+    left: 90%;
+    top: 70%;
+    background-color: #459ed2;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.arrow {
+    float: right;
+}
+
+button:hover {
+    background-color:#2f4d74;
+}
+
+
+body {
+    background-image: url(images/login.png);
+    background-size: 1350px 620px;
+    background-repeat: no-repeat;
+}
+.flash-messages {
+    position: absolute;
+   left: 68%;
+   top: 35%;
+    margin-bottom: 75px;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.flash-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
