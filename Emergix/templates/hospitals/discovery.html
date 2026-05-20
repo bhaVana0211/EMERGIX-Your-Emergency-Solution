@@ -18,7 +18,7 @@
             <!-- Manual Location Search (Fallback) -->
             <div class="w-full md:w-auto relative" x-show="locationError || !userLat">
                 <input type="text" x-model="searchQuery" @keydown.enter="manualSearch" 
-                       placeholder="Enter area (e.g. Patia, Bhubaneswar)" 
+                       placeholder="Enter area (e.g. Andheri, Mumbai)" 
                        class="w-full md:w-80 pl-4 pr-10 py-2 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand">
                 <button @click="manualSearch" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand">
                     <i class="fa-solid fa-magnifying-glass"></i>

@@ -38,6 +38,16 @@ def hospitals_nearby():
     if hospital_type and hospital_type != 'all':
         query = query.filter_by(hospital_type=hospital_type)
     
+    # Bounding Box Filter for Scalability (Pre-filter before Haversine)
+    import math
+    lat_deg_dist = radius / 111.0
+    lng_deg_dist = radius / (111.0 * math.cos(math.radians(lat)))
+    
+    query = query.filter(
+        Hospital.latitude.between(lat - lat_deg_dist, lat + lat_deg_dist),
+        Hospital.longitude.between(lng - lng_deg_dist, lng + lng_deg_dist)
+    )
+
     hospitals = query.all()
 
     # Filter by distance using Haversine (SQLite fallback)
@@ -228,7 +238,7 @@ def update_beds():
     inventory = BedInventory.query.filter_by(
         hospital_id=hospital_id,
         bed_type=bed_type
-    ).first()
+    ).with_for_update().first()
 
     if not inventory:
         return jsonify({'success': False, 'error': 'Bed inventory not found', 'code': 404}), 404

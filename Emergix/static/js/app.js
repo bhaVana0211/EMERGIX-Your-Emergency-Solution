@@ -110,7 +110,7 @@ document.addEventListener('alpine:init', () => {
 
             try {
                 // Forward geocoding
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(this.searchQuery + ', Odisha, India')}&limit=1`);
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(this.searchQuery + ', India')}&limit=1`);
                 const data = await res.json();
 
                 if (data && data.length > 0) {
