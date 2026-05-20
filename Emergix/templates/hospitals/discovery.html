@@ -84,10 +84,10 @@
 
         <!-- Empty State -->
         <div x-show="!isLoading && filteredHospitals.length === 0 && userLat" class="text-center py-20" style="display: none;">
-            <div class="text-6xl text-gray-300 mb-4"><i class="fa-solid fa-hospital-user"></i></div>
-            <h3 class="text-2xl font-bold text-deep mb-2">No hospitals found</h3>
-            <p class="text-gray-500 mb-6">We couldn't find any hospitals matching your criteria within <span x-text="radius"></span> km.</p>
-            <button @click="radius = 25" class="btn-primary">Increase radius to 25 km</button>
+            <div class="text-6xl text-gray-300 mb-4"><i class="fa-solid fa-location-crosshairs"></i></div>
+            <h3 class="text-2xl font-bold text-deep mb-2">Location Not Served</h3>
+            <p class="text-gray-500 mb-6">We don't serve that location right now, or there are no hospitals within <span x-text="radius"></span> km.</p>
+            <button @click="radius = 50" class="btn-primary">Expand search radius</button>
         </div>
 
         <!-- Hospital Cards Grid -->
