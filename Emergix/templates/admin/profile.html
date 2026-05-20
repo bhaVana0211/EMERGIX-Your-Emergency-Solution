@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Hospital Profile - EMERGIX{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row flex-grow w-full bg-soft" x-data="profileManager()">
+    
+    <!-- Sidebar -->
+    <aside class="w-full md:w-64 admin-sidebar shrink-0 md:sticky md:top-[64px]">
+        <div class="p-4 border-b border-white/10 hidden md:block">
+            <h3 class="font-bold text-white text-lg truncate" title="{{ hospital.name }}">{{ hospital.name }}</h3>
+            <span class="bg-brand/20 text-brand-light text-xs font-semibold px-2 py-0.5 rounded uppercase border border-brand/30">Admin Panel</span>
+        </div>
+        
+        <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-visible py-2 md:py-4">
+            <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link whitespace-nowrap">
+                <i class="fa-solid fa-chart-pie w-6"></i> Overview
+            </a>
+            <a href="{{ url_for('admin.beds') }}" class="admin-nav-link whitespace-nowrap">
+                <i class="fa-solid fa-bed-pulse w-6"></i> Bed Management
+            </a>
+            <a href="{{ url_for('admin.alerts') }}" class="admin-nav-link whitespace-nowrap">
+                <i class="fa-solid fa-bell w-6"></i> Incoming Alerts
+            </a>
+            <a href="{{ url_for('admin.profile') }}" class="admin-nav-link active whitespace-nowrap">
+                <i class="fa-solid fa-hospital w-6"></i> Hospital Profile
+            </a>
+        </nav>
+    </aside>
+
+    <main class="flex-grow p-4 md:p-8 overflow-y-auto">
+        <div class="flex justify-between items-end mb-6 border-b border-gray-200 pb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-deep">Hospital Profile</h1>
+                <p class="text-gray-500">Manage public contact details and facility features.</p>
+            </div>
+        </div>
+
+        <div class="max-w-3xl">
+            <!-- Non-editable info banner -->
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-8 flex flex-col md:flex-row items-center gap-6">
+                <div class="w-24 h-24 bg-brand/10 text-brand rounded-2xl flex items-center justify-center text-4xl shrink-0">
+                    <i class="fa-solid fa-building-user"></i>
+                </div>
+                <div class="flex-grow text-center md:text-left">
+                    <h2 class="text-2xl font-bold text-deep">{{ hospital.name }}</h2>
+                    <p class="text-gray-500 mb-2">{{ hospital.city }}, {{ hospital.state }}</p>
+                    <div class="flex flex-wrap justify-center md:justify-start gap-2 text-xs">
+                        <span class="bg-deep/10 text-deep px-2 py-1 rounded font-semibold uppercase tracking-wider">{{ hospital.hospital_type }}</span>
+                        <span class="bg-gray-200 text-gray-700 px-2 py-1 rounded font-medium font-mono">LAT: {{ hospital.latitude }} | LNG: {{ hospital.longitude }}</span>
+                    </div>
+                </div>
+                <div class="shrink-0 text-sm text-gray-400 text-center md:text-right">
+                    <p>To change name or location,</p>
+                    <p>contact Super Admin.</p>
+                </div>
+            </div>
+
+            <!-- Edit Form -->
+            <form @submit.prevent="saveProfile" class="admin-card space-y-6">
+                <div x-show="message" class="p-3 rounded-lg text-sm font-medium" :class="isError ? 'bg-red-50 text-alert border border-alert' : 'bg-green-50 text-success border border-success'" style="display: none;">
+                    <span x-text="message"></span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Emergency / Main Phone</label>
+                        <input type="text" x-model="form.phone" class="form-input" placeholder="e.g. 0674-XXXXXXX">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
+                        <input type="email" x-model="form.email" class="form-input" placeholder="contact@hospital.com">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Website URL</label>
+                        <input type="url" x-model="form.website" class="form-input" placeholder="https://www.hospital.com">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Full Address</label>
+                        <textarea x-model="form.address" rows="2" class="form-input resize-none" placeholder="Complete postal address"></textarea>
+                    </div>
+                </div>
+
+                <hr class="border-gray-200">
+
+                <h3 class="font-bold text-lg text-deep mb-4">Facility Features</h3>
+                
+                <div class="space-y-4">
+                    <label class="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition">
+                        <input type="checkbox" x-model="form.emergency_24h" class="w-5 h-5 rounded text-brand focus:ring-brand accent-brand">
+                        <div>
+                            <div class="font-semibold text-gray-900">24/7 Emergency Department</div>
+                            <div class="text-sm text-gray-500">Facility operates a full emergency room round the clock.</div>
+                        </div>
+                    </label>
+                    
+                    <label class="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition">
+                        <input type="checkbox" x-model="form.ambulance" class="w-5 h-5 rounded text-brand focus:ring-brand accent-brand">
+                        <div>
+                            <div class="font-semibold text-gray-900">In-house Ambulance Service</div>
+                            <div class="text-sm text-gray-500">Hospital provides its own ambulance dispatch.</div>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="flex justify-end pt-4 mt-6">
+                    <button type="submit" class="btn-primary py-2.5 px-6 min-w-[120px]" :disabled="isSaving">
+                        <span x-show="!isSaving">Save Changes</span>
+                        <span x-show="isSaving" style="display: none;"><i class="fa-solid fa-spinner fa-spin"></i> Saving...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('profileManager', () => ({
+            form: {
+                phone: '{{ hospital.phone or "" }}',
+                email: '{{ hospital.email or "" }}',
+                website: '{{ hospital.website or "" }}',
+                address: '{{ hospital.address or "" }}',
+                emergency_24h: {{ 'true' if hospital.emergency_24h else 'false' }},
+                ambulance: {{ 'true' if hospital.ambulance else 'false' }}
+            },
+            isSaving: false,
+            message: '',
+            isError: false,
+            
+            async saveProfile() {
+                this.isSaving = true;
+                this.message = '';
+                
+                try {
+                    const res = await fetch('/api/admin/profile/update', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(this.form)
+                    });
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        this.message = 'Profile updated successfully.';
+                        this.isError = false;
+                        setTimeout(() => { this.message = ''; }, 3000);
+                    } else {
+                        this.message = data.error || 'Failed to update profile.';
+                        this.isError = true;
+                    }
+                } catch (err) {
+                    this.message = 'Network error. Please try again.';
+                    this.isError = true;
+                } finally {
+                    this.isSaving = false;
+                }
+            }
+        }));
+    });
+</script>
+{% endblock %}

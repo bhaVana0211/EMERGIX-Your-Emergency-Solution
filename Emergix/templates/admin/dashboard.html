@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Hospital Dashboard - EMERGIX{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row flex-grow w-full bg-soft" x-data="adminRealtime({{ hospital.id }})">
+    
+    <!-- Sidebar -->
+    <aside class="w-full md:w-64 admin-sidebar shrink-0 md:sticky md:top-[64px]">
+        <div class="p-4 border-b border-white/10 hidden md:block">
+            <h3 class="font-bold text-white text-lg truncate" title="{{ hospital.name }}">{{ hospital.name }}</h3>
+            <span class="bg-brand/20 text-brand-light text-xs font-semibold px-2 py-0.5 rounded uppercase border border-brand/30">Admin Panel</span>
+        </div>
+        
+        <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-visible py-2 md:py-4">
+            <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link active whitespace-nowrap">
+                <i class="fa-solid fa-chart-pie w-6"></i> Overview
+            </a>
+            <a href="{{ url_for('admin.beds') }}" class="admin-nav-link whitespace-nowrap">
+                <i class="fa-solid fa-bed-pulse w-6"></i> Bed Management
+            </a>
+            <a href="{{ url_for('admin.alerts') }}" class="admin-nav-link whitespace-nowrap relative">
+                <i class="fa-solid fa-bell w-6"></i> Incoming Alerts
+                {% if pending_alerts > 0 %}
+                <span class="absolute top-2 right-4 w-5 h-5 bg-alert text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse-badge">{{ pending_alerts }}</span>
+                {% endif %}
+            </a>
+            <a href="{{ url_for('admin.profile') }}" class="admin-nav-link whitespace-nowrap">
+                <i class="fa-solid fa-hospital w-6"></i> Hospital Profile
+            </a>
+        </nav>
+        
+        <!-- Connection Status Indicator -->
+        <div class="hidden md:block absolute bottom-0 w-full p-4 border-t border-white/10">
+            <div class="flex items-center gap-2 text-sm" :class="isConnected ? 'text-success' : 'text-alert'">
+                <i class="fa-solid fa-circle text-[8px]" :class="isConnected ? '' : 'fa-beat-fade'"></i>
+                <span x-text="isConnected ? 'Live Connection Active' : 'Disconnected. Reconnecting...'"></span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow p-4 md:p-8 overflow-y-auto">
+        <div class="flex justify-between items-end mb-6 border-b border-gray-200 pb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-deep">Dashboard Overview</h1>
+                <p class="text-gray-500">Live statistics and recent activity for {{ hospital.name }}</p>
+            </div>
+            <!-- Mobile Connection Status -->
+            <div class="md:hidden flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full bg-white border shadow-sm" :class="isConnected ? 'border-success/30 text-success' : 'border-alert/30 text-alert'">
+                <i class="fa-solid fa-circle text-[8px]" :class="isConnected ? '' : 'fa-beat-fade'"></i>
+                <span x-text="isConnected ? 'Live' : 'Offline'"></span>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="admin-card border-l-4 border-l-brand">
+                <div class="stat-label">Total Beds</div>
+                <div class="stat-value mt-1">{{ total_beds }}</div>
+                <div class="text-sm text-gray-400 mt-2"><i class="fa-solid fa-building mr-1"></i> Hospital Capacity</div>
+            </div>
+            
+            <div class="admin-card border-l-4 border-l-success">
+                <div class="stat-label">Available Beds</div>
+                <div class="stat-value mt-1 text-success">{{ available_beds }}</div>
+                <div class="text-sm text-gray-400 mt-2">
+                    <div class="w-full h-1.5 bg-gray-100 rounded-full mt-1 overflow-hidden">
+                        <div class="h-full bg-success" style="width: {{ (available_beds / total_beds * 100) if total_beds > 0 else 0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="admin-card border-l-4 border-l-warning">
+                <div class="stat-label">Alerts Today</div>
+                <div class="stat-value mt-1 text-warning">{{ today_alerts }}</div>
+                <div class="text-sm text-gray-400 mt-2"><i class="fa-solid fa-calendar-day mr-1"></i> Since midnight</div>
+            </div>
+            
+            <div class="admin-card border-l-4 border-l-alert relative overflow-hidden">
+                <div class="stat-label">Pending Action</div>
+                <div class="stat-value mt-1 text-alert">{{ pending_alerts }}</div>
+                <div class="text-sm text-gray-400 mt-2">Patients en route</div>
+                {% if pending_alerts > 0 %}
+                <div class="absolute -right-4 -bottom-4 opacity-10 text-alert text-7xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Bed Occupancy Summary -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="admin-card h-full">
+                    <h3 class="font-bold text-lg text-deep mb-4 flex justify-between items-center">
+                        Inventory Status
+                        <a href="{{ url_for('admin.beds') }}" class="text-sm font-semibold text-brand hover:underline">Manage</a>
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        {% for item in inventory %}
+                        {% if item.total_beds > 0 %}
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-medium text-gray-700 flex items-center gap-2">
+                                    <i class="fa-solid {{ BED_TYPE_ICONS[item.bed_type] }} w-4 text-gray-400"></i>
+                                    {{ BED_TYPE_LABELS[item.bed_type] }}
+                                </span>
+                                <span class="font-bold {% if item.available_beds == 0 %}text-alert{% elif item.occupancy_pct >= 80 %}text-warning{% else %}text-success{% endif %}">
+                                    {{ item.available_beds }} <span class="text-gray-400 font-normal">/ {{ item.total_beds }}</span>
+                                </span>
+                            </div>
+                            <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full transition-all duration-500 {% if item.available_beds == 0 %}bg-alert{% elif item.occupancy_pct >= 80 %}bg-warning{% else %}bg-success{% endif %}"
+                                     style="width: {{ item.occupancy_pct }}%"></div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Alerts -->
+            <div class="lg:col-span-2">
+                <div class="admin-card h-full">
+                    <h3 class="font-bold text-lg text-deep mb-4 flex justify-between items-center">
+                        Live Alert Feed
+                        <a href="{{ url_for('admin.alerts') }}" class="text-sm font-semibold text-brand hover:underline">View All</a>
+                    </h3>
+
+                    {% if recent_alerts %}
+                    <div class="space-y-3" id="recent-alerts-container">
+                        {% for alert in recent_alerts %}
+                        <div class="p-4 rounded-xl border {% if alert.status == 'pending' %}border-warning/30 bg-warning/5{% else %}border-gray-100 bg-gray-50{% endif %} flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="flex items-start gap-3">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 {% if alert.status == 'pending' %}bg-warning text-white shadow-md{% elif alert.status == 'acknowledged' %}bg-success/20 text-success{% else %}bg-gray-200 text-gray-500{% endif %}">
+                                    <i class="fa-solid {% if alert.bed_type_needed %}{{ BED_TYPE_ICONS[alert.bed_type_needed] }}{% else %}fa-bell{% endif %}"></i>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-gray-900">{{ alert.patient_name }} <span class="text-xs text-gray-500 font-normal ml-2">Ref: {{ alert.booking_ref }}</span></div>
+                                    <div class="text-sm text-gray-600 mt-0.5">
+                                        Requires <span class="font-semibold text-deep">{{ BED_TYPE_LABELS.get(alert.bed_type_needed, alert.bed_type_needed|capitalize) }}</span> bed.
+                                        Est. arrival: <span class="font-semibold text-alert">{{ alert.est_arrival_min }} mins</span>.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                                {% if alert.status == 'pending' %}
+                                <button @click="updateAlertStatus({{ alert.id }}, 'acknowledged').then(ok => { if(ok) window.location.reload(); })" class="px-3 py-1.5 bg-success text-white text-sm font-semibold rounded hover:bg-emerald-600 transition shadow-sm">
+                                    <i class="fa-solid fa-check mr-1"></i> Acknowledge
+                                </button>
+                                {% else %}
+                                <span class="status-badge status-{{ alert.status }}">{{ alert.status }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-12 text-gray-400">
+                        <i class="fa-solid fa-inbox text-4xl mb-3 opacity-50"></i>
+                        <p>No alerts received yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Reload page if new alert comes in to keep dashboard simple (alerts page handles pure SPA reactivity) -->
+<script>
+    window.addEventListener('new-alert-received', (e) => {
+        // Just reload the dashboard to reflect new stats
+        // We add a tiny delay so the notification shows
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+    });
+</script>
+{% endblock %}

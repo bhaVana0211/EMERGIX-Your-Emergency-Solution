@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Bed Management - EMERGIX{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row flex-grow w-full bg-soft">
+    
+    <!-- Include Sidebar via hacky but effective Jinja macro or just hardcode for MVP -->
+    <aside class="w-full md:w-64 admin-sidebar shrink-0 md:sticky md:top-[64px]">
+        <div class="p-4 border-b border-white/10 hidden md:block">
+            <h3 class="font-bold text-white text-lg truncate" title="{{ hospital.name }}">{{ hospital.name }}</h3>
+            <span class="bg-brand/20 text-brand-light text-xs font-semibold px-2 py-0.5 rounded uppercase border border-brand/30">Admin Panel</span>
+        </div>
+        
+        <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-visible py-2 md:py-4">
+            <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link whitespace-nowrap">
+                <i class="fa-solid fa-chart-pie w-6"></i> Overview
+            </a>
+            <a href="{{ url_for('admin.beds') }}" class="admin-nav-link active whitespace-nowrap">
+                <i class="fa-solid fa-bed-pulse w-6"></i> Bed Management
+            </a>
+            <a href="{{ url_for('admin.alerts') }}" class="admin-nav-link whitespace-nowrap">
+                <i class="fa-solid fa-bell w-6"></i> Incoming Alerts
+            </a>
+            <a href="{{ url_for('admin.profile') }}" class="admin-nav-link whitespace-nowrap">
+                <i class="fa-solid fa-hospital w-6"></i> Hospital Profile
+            </a>
+        </nav>
+    </aside>
+
+    <main class="flex-grow p-4 md:p-8 overflow-y-auto" x-data="bedManager()">
+        <div class="flex justify-between items-end mb-6 border-b border-gray-200 pb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-deep">Live Bed Management</h1>
+                <p class="text-gray-500">Update available beds. Changes reflect instantly to all patients.</p>
+            </div>
+            
+            <div class="flex items-center gap-2" x-show="isSaving">
+                <i class="fa-solid fa-circle-notch fa-spin text-brand"></i>
+                <span class="text-sm font-medium text-gray-500">Saving to cloud...</span>
+            </div>
+        </div>
+
+        <!-- Bed Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for item in inventory %}
+            <div class="admin-card relative overflow-hidden group">
+                <!-- Status ribbon -->
+                <div class="absolute top-0 left-0 w-full h-1 {% if item.available_beds == 0 %}bg-alert{% elif item.occupancy_pct >= 80 %}bg-warning{% else %}bg-success{% endif %}" id="ribbon-{{ item.bed_type }}"></div>
+                
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-2 text-gray-700">
+                        <div class="w-8 h-8 rounded bg-gray-100 flex items-center justify-center">
+                            <i class="fa-solid {{ BED_TYPE_ICONS[item.bed_type] }}"></i>
+                        </div>
+                        <span class="font-bold text-lg">{{ BED_TYPE_LABELS[item.bed_type] }}</span>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 mb-4">
+                    <div class="text-center text-xs text-gray-500 font-semibold uppercase tracking-wider mb-2">Available Beds</div>
+                    <div class="flex items-center justify-center gap-4">
+                        <button class="bed-control-btn" @click="updateBed('{{ item.bed_type }}', -1, {{ item.total_beds }})" :disabled="beds['{{ item.bed_type }}'] <= 0">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+                        
+                        <input type="number" 
+                               id="input-{{ item.bed_type }}"
+                               class="bed-count-input" 
+                               x-model="beds['{{ item.bed_type }}']" 
+                               @change="validateAndUpdate('{{ item.bed_type }}', {{ item.total_beds }})"
+                               min="0" max="{{ item.total_beds }}">
+                               
+                        <button class="bed-control-btn" @click="updateBed('{{ item.bed_type }}', 1, {{ item.total_beds }})" :disabled="beds['{{ item.bed_type }}'] >= {{ item.total_beds }}">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex justify-between text-sm text-gray-500 font-medium mb-1">
+                    <span>Occupancy</span>
+                    <span>Total: {{ item.total_beds }}</span>
+                </div>
+                
+                <!-- Occupancy Bar calculated locally in Alpine for immediate feedback -->
+                <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-300"
+                         :class="getBarClass('{{ item.bed_type }}', {{ item.total_beds }})"
+                         :style="`width: ${Math.min(100, Math.max(0, (( {{ item.total_beds }} - beds['{{ item.bed_type }}'] ) / {{ item.total_beds }}) * 100))}%`"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('bedManager', () => ({
+            isSaving: false,
+            saveTimeout: null,
+            // Initialize local state with Jinja data
+            beds: {
+                {% for item in inventory %}
+                '{{ item.bed_type }}': {{ item.available_beds }},
+                {% endfor %}
+            },
+            
+            getBarClass(type, total) {
+                if (total === 0) return 'bg-gray-300';
+                const avail = parseInt(this.beds[type]) || 0;
+                const occ = ((total - avail) / total) * 100;
+                if (avail === 0) return 'bg-alert';
+                if (occ >= 80) return 'bg-warning';
+                return 'bg-success';
+            },
+
+            updateBed(type, change, total) {
+                let current = parseInt(this.beds[type]) || 0;
+                let newVal = current + change;
+                
+                // Clamp
+                newVal = Math.max(0, Math.min(newVal, total));
+                
+                if (newVal !== current) {
+                    this.beds[type] = newVal;
+                    this.triggerSave(type, newVal, total);
+                    this.updateRibbon(type, newVal, total);
+                }
+            },
+
+            validateAndUpdate(type, total) {
+                let val = parseInt(this.beds[type]);
+                if (isNaN(val) || val < 0) val = 0;
+                if (val > total) val = total;
+                
+                this.beds[type] = val;
+                this.triggerSave(type, val, total);
+                this.updateRibbon(type, val, total);
+            },
+            
+            updateRibbon(type, avail, total) {
+                const ribbon = document.getElementById(`ribbon-${type}`);
+                if (!ribbon) return;
+                
+                ribbon.classList.remove('bg-alert', 'bg-warning', 'bg-success');
+                const occ = ((total - avail) / total) * 100;
+                
+                if (avail === 0) ribbon.classList.add('bg-alert');
+                else if (occ >= 80) ribbon.classList.add('bg-warning');
+                else ribbon.classList.add('bg-success');
+                
+                // Add a quick pulse effect to the input
+                const input = document.getElementById(`input-${type}`);
+                input.style.color = '#0A9396';
+                input.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    input.style.color = '';
+                    input.style.transform = '';
+                }, 200);
+            },
+
+            triggerSave(type, available, total) {
+                // Debounce saves per bed type
+                this.isSaving = true;
+                
+                // In a real app we'd debounce per type, for MVP we just fire it
+                fetch('/api/admin/beds/update', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bed_type: type,
+                        available_beds: available,
+                        total_beds: total
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    setTimeout(() => { this.isSaving = false; }, 500);
+                })
+                .catch(err => {
+                    console.error('Save failed', err);
+                    this.isSaving = false;
+                    alert('Failed to save bed count. Please check connection.');
+                });
+            }
+        }));
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,167 @@
+/*
+  EMERGIX Design System Base
+  Modern Glassmorphism with soft depth
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Colors */
+  --brand-teal: #0A9396;
+  --deep-teal: #005F73;
+  --soft-cream: #F8F9FA;
+  --warm-white: #FFFFFF;
+  --gentle-slate: #94A3B8;
+  --warning-amber: #E9C46A;
+  --alert-red: #E63946;
+  --success-green: #2A9D8F;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  color: #1f2937;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Glassmorphism Card Base */
+.glass-card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 95, 115, 0.12);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(0, 95, 115, 0.18);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.main-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgba(200,200,200,0.2) 25%, rgba(200,200,200,0.3) 37%, rgba(200,200,200,0.2) 63%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+@keyframes pulse-badge {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.animate-pulse-badge {
+  animation: pulse-badge 2s infinite;
+}
+
+/* Form Styles */
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  background: rgba(255, 255, 255, 0.9);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--brand-teal);
+  box-shadow: 0 0 0 3px rgba(10, 147, 150, 0.2);
+}
+
+.btn-primary {
+  background-color: var(--brand-teal);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-primary:hover {
+  background-color: var(--deep-teal);
+  transform: scale(1.02);
+}
+
+.btn-secondary {
+  background-color: white;
+  color: var(--deep-teal);
+  border: 1px solid var(--deep-teal);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: var(--soft-cream);
+}
+
+/* Background blob animations */
+.blob {
+  position: absolute;
+  filter: blur(60px);
+  z-index: -1;
+  opacity: 0.6;
+  animation: float 10s infinite ease-in-out alternate;
+}
+
+@keyframes float {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(30px, -30px) scale(1.1); }
+}
+
+/* Modal animation */
+.modal-enter {
+  transform: translateY(100%);
+  opacity: 0;
+}
+.modal-enter-active {
+  transform: translateY(0);
+  opacity: 1;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.modal-leave {
+  transform: translateY(0);
+  opacity: 1;
+}
+.modal-leave-active {
+  transform: translateY(100%);
+  opacity: 0;
+  transition: all 0.25s ease-in;
+}
+
+/* Progress Bar Colors */
+.progress-safe { background-color: var(--success-green); }
+.progress-warning { background-color: var(--warning-amber); }
+.progress-danger { background-color: var(--alert-red); }
+
+/* Typography */
+.text-brand { color: var(--brand-teal); }
+.text-deep { color: var(--deep-teal); }
+.bg-brand { background-color: var(--brand-teal); }
+.bg-deep { background-color: var(--deep-teal); }

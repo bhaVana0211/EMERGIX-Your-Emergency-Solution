@@ -1,0 +1,131 @@
+/*
+  EMERGIX Admin Dashboard specific styles
+*/
+
+.admin-sidebar {
+  background-color: var(--deep-teal);
+  color: white;
+  min-height: calc(100vh - 64px); /* assuming navbar is 64px */
+}
+
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s;
+  border-left: 4px solid transparent;
+}
+
+.admin-nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.admin-nav-link.active {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: white;
+  border-left-color: var(--brand-teal);
+}
+
+.admin-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--deep-teal);
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--gentle-slate);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+/* Bed increment/decrement controls */
+.bed-control-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background-color: #f1f5f9;
+  color: #334155;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s;
+  border: 1px solid #e2e8f0;
+}
+
+.bed-control-btn:hover {
+  background-color: #e2e8f0;
+}
+
+.bed-control-btn:active {
+  transform: scale(0.95);
+  background-color: #cbd5e1;
+}
+
+.bed-count-input {
+  width: 60px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: var(--deep-teal);
+}
+.bed-count-input:focus {
+  outline: none;
+}
+
+/* Alert center specific */
+.alert-row {
+  transition: background-color 0.3s;
+}
+.alert-row.highlight {
+  animation: highlight-pulse 2s ease-out;
+}
+
+@keyframes highlight-pulse {
+  0% { background-color: rgba(42, 157, 143, 0.2); }
+  100% { background-color: transparent; }
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+.status-acknowledged {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+.status-admitted {
+  background-color: #e0e7ff;
+  color: #3730a3;
+}
+.status-cancelled {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}

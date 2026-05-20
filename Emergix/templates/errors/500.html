@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}500 Server Error - EMERGIX{% endblock %}
+{% block content %}
+<div class="flex-grow flex items-center justify-center p-4">
+    <div class="text-center">
+        <div class="text-7xl text-alert opacity-50 mb-4"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <h2 class="text-3xl font-bold text-deep mb-4">Server Error</h2>
+        <p class="text-gray-600 mb-8 max-w-md mx-auto">Oops, something went wrong on our end. Please try again later or contact support if the problem persists.</p>
+        <a href="{{ url_for('main.landing') }}" class="btn-primary"><i class="fa-solid fa-house mr-2"></i> Back to Home</a>
+    </div>
+</div>
+{% endblock %}

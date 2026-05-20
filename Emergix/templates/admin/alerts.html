@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Incoming Alerts - EMERGIX{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row flex-grow w-full bg-soft" x-data="adminAlerts({{ hospital.id }})">
+    
+    <!-- Sidebar -->
+    <aside class="w-full md:w-64 admin-sidebar shrink-0 md:sticky md:top-[64px]">
+        <div class="p-4 border-b border-white/10 hidden md:block">
+            <h3 class="font-bold text-white text-lg truncate" title="{{ hospital.name }}">{{ hospital.name }}</h3>
+            <span class="bg-brand/20 text-brand-light text-xs font-semibold px-2 py-0.5 rounded uppercase border border-brand/30">Admin Panel</span>
+        </div>
+        
+        <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-visible py-2 md:py-4">
+            <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link whitespace-nowrap">
+                <i class="fa-solid fa-chart-pie w-6"></i> Overview
+            </a>
+            <a href="{{ url_for('admin.beds') }}" class="admin-nav-link whitespace-nowrap">
+                <i class="fa-solid fa-bed-pulse w-6"></i> Bed Management
+            </a>
+            <a href="{{ url_for('admin.alerts') }}" class="admin-nav-link active whitespace-nowrap">
+                <i class="fa-solid fa-bell w-6"></i> Incoming Alerts
+            </a>
+            <a href="{{ url_for('admin.profile') }}" class="admin-nav-link whitespace-nowrap">
+                <i class="fa-solid fa-hospital w-6"></i> Hospital Profile
+            </a>
+        </nav>
+        
+        <div class="hidden md:block absolute bottom-0 w-full p-4 border-t border-white/10">
+            <div class="flex items-center gap-2 text-sm" :class="isConnected ? 'text-success' : 'text-alert'">
+                <i class="fa-solid fa-circle text-[8px]" :class="isConnected ? '' : 'fa-beat-fade'"></i>
+                <span x-text="isConnected ? 'Listening for Alerts' : 'Reconnecting...'"></span>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-grow p-4 md:p-8 overflow-y-auto">
+        <div class="flex justify-between items-end mb-6 border-b border-gray-200 pb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-deep">Incoming Alerts</h1>
+                <p class="text-gray-500">Real-time alerts from patients en route to your hospital.</p>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+            <button @click="filter = 'all'" class="px-4 py-2 rounded-lg font-semibold text-sm transition-colors whitespace-nowrap border"
+                    :class="filter === 'all' ? 'bg-deep text-white border-deep' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'">
+                All Alerts
+            </button>
+            <button @click="filter = 'pending'" class="px-4 py-2 rounded-lg font-semibold text-sm transition-colors whitespace-nowrap border"
+                    :class="filter === 'pending' ? 'bg-warning text-white border-warning' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'">
+                Pending
+            </button>
+            <button @click="filter = 'acknowledged'" class="px-4 py-2 rounded-lg font-semibold text-sm transition-colors whitespace-nowrap border"
+                    :class="filter === 'acknowledged' ? 'bg-success text-white border-success' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'">
+                Acknowledged
+            </button>
+            <button @click="filter = 'admitted'" class="px-4 py-2 rounded-lg font-semibold text-sm transition-colors whitespace-nowrap border"
+                    :class="filter === 'admitted' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'">
+                Admitted
+            </button>
+        </div>
+
+        <div class="space-y-4">
+            <template x-for="alert in filteredAlerts" :key="alert.id">
+                <div class="admin-card alert-row" :class="{'highlight': alert.isNew, 'opacity-75': alert.status === 'cancelled' || alert.status === 'admitted'}">
+                    <div class="flex flex-col md:flex-row gap-4 md:items-start justify-between">
+                        
+                        <!-- Alert Info -->
+                        <div class="flex gap-4 items-start">
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 mt-1"
+                                 :class="{
+                                     'bg-warning text-white shadow-lg shadow-warning/30': alert.status === 'pending',
+                                     'bg-success/20 text-success': alert.status === 'acknowledged',
+                                     'bg-indigo-100 text-indigo-700': alert.status === 'admitted',
+                                     'bg-gray-200 text-gray-500': alert.status === 'cancelled'
+                                 }">
+                                <i class="fa-solid fa-bell" x-show="alert.status === 'pending'"></i>
+                                <i class="fa-solid fa-check" x-show="alert.status === 'acknowledged'"></i>
+                                <i class="fa-solid fa-bed" x-show="alert.status === 'admitted'"></i>
+                                <i class="fa-solid fa-ban" x-show="alert.status === 'cancelled'"></i>
+                            </div>
+                            
+                            <div>
+                                <div class="flex items-center gap-3 mb-1">
+                                    <h3 class="text-xl font-bold text-gray-900" x-text="alert.patient_name"></h3>
+                                    <span class="status-badge" :class="`status-${alert.status}`" x-text="alert.status"></span>
+                                </div>
+                                
+                                <div class="text-sm text-gray-600 mb-3">
+                                    <span x-text="alert.patient_age ? `${alert.patient_age} yrs, ` : ''"></span>
+                                    <span x-text="alert.patient_gender ? alert.patient_gender : ''" class="capitalize"></span>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                                    <div><span class="text-gray-400 font-medium">Ref:</span> <span class="font-mono font-bold text-deep" x-text="alert.booking_ref"></span></div>
+                                    <div><span class="text-gray-400 font-medium">Needs:</span> <span class="font-bold text-brand uppercase" x-text="alert.bed_type_needed"></span></div>
+                                    <div><span class="text-gray-400 font-medium">Contact:</span> <a :href="`tel:${alert.contact_phone}`" class="text-brand hover:underline font-medium" x-text="alert.contact_phone"></a></div>
+                                    <div><span class="text-gray-400 font-medium">Est. Arrival:</span> <span class="font-bold text-alert" x-text="`${alert.est_arrival_min} mins`"></span></div>
+                                </div>
+                                
+                                <div x-show="alert.notes" class="mt-3 p-3 bg-gray-50 rounded-lg text-sm text-gray-700 border border-gray-100" style="display: none;">
+                                    <span class="font-medium text-gray-400"><i class="fa-solid fa-quote-left mr-1 text-xs"></i> Notes:</span>
+                                    <span x-text="alert.notes"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="flex flex-row md:flex-col gap-2 shrink-0 border-t md:border-t-0 pt-4 md:pt-0">
+                            <template x-if="alert.status === 'pending'">
+                                <button @click="updateStatus(alert.id, 'acknowledged')" class="flex-1 btn-primary py-2 px-4 shadow-sm text-sm">
+                                    <i class="fa-solid fa-check mr-1"></i> Acknowledge
+                                </button>
+                            </template>
+                            
+                            <template x-if="alert.status === 'acknowledged'">
+                                <button @click="updateStatus(alert.id, 'admitted')" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold py-2 px-4 shadow-sm text-sm transition">
+                                    <i class="fa-solid fa-bed-pulse mr-1"></i> Mark Admitted
+                                </button>
+                            </template>
+                            
+                            <template x-if="alert.status === 'pending' || alert.status === 'acknowledged'">
+                                <button @click="updateStatus(alert.id, 'cancelled')" class="flex-1 btn-secondary text-alert border-alert hover:bg-red-50 py-2 px-4 text-sm">
+                                    Cancel
+                                </button>
+                            </template>
+                            
+                            <div class="text-xs text-gray-400 text-right mt-auto w-full">
+                                <span x-text="new Date(alert.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+            
+            <div x-show="filteredAlerts.length === 0" class="text-center py-16 text-gray-400" style="display: none;">
+                <i class="fa-solid fa-clipboard-check text-5xl mb-4 opacity-30"></i>
+                <h3 class="text-xl font-bold text-gray-600 mb-2">No alerts found</h3>
+                <p>There are no alerts matching the current filter.</p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('adminAlerts', (hospitalId) => ({
+            alerts: {{ alerts | tojson | default('[]') | safe }},
+            filter: 'all',
+            socket: null,
+            isConnected: false,
+            
+            get filteredAlerts() {
+                if (this.filter === 'all') return this.alerts;
+                return this.alerts.filter(a => a.status === this.filter);
+            },
+            
+            init() {
+                // Initialize socket connection using the realtime JS file logic implicitly
+                // Or just replicate it here for isolation
+                if (typeof io !== 'undefined') {
+                    this.socket = io();
+                    this.socket.on('connect', () => {
+                        this.isConnected = true;
+                        this.socket.emit('join_hospital', { hospital_id: hospitalId });
+                    });
+                    this.socket.on('disconnect', () => {
+                        this.isConnected = false;
+                    });
+                    
+                    this.socket.on('new_alert', (data) => {
+                        data.isNew = true;
+                        this.alerts.unshift(data);
+                        
+                        // Play sound
+                        try {
+                            const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+                            audio.play().catch(e => console.log('Audio autoplay prevented'));
+                        } catch(e){}
+                        
+                        // Show notification
+                        if ("Notification" in window && Notification.permission === "granted") {
+                            new Notification(`New Alert: ${data.bed_type_needed.toUpperCase()}`, {
+                                body: `${data.patient_name} arriving in ~${data.est_arrival_min} mins.`,
+                                tag: data.booking_ref
+                            });
+                        }
+                        
+                        setTimeout(() => { data.isNew = false; }, 2000);
+                    });
+                }
+                
+                // Request notification permission if not asked
+                if ("Notification" in window && Notification.permission === "default") {
+                    Notification.requestPermission();
+                }
+            },
+            
+            async updateStatus(id, status) {
+                try {
+                    const res = await fetch(`/api/admin/alerts/${id}/status`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status })
+                    });
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        const index = this.alerts.findIndex(a => a.id === id);
+                        if (index !== -1) {
+                            this.alerts[index].status = status;
+                            // Trigger re-render by creating a new array ref
+                            this.alerts = [...this.alerts];
+                        }
+                    } else {
+                        alert(data.error || 'Failed to update status');
+                    }
+                } catch (err) {
+                    alert('Network error updating status');
+                }
+            }
+        }));
+    });
+</script>
+{% endblock %}

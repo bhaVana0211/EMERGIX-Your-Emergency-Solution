@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EMERGIX - Hospital Live Bed Availability & Booking Platform{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons (Font Awesome 6) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    
+    <!-- Tailwind CSS (via CDN as requested in PRD) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: '#0A9396',
+                        deep: '#005F73',
+                        soft: '#F8F9FA',
+                        warning: '#E9C46A',
+                        alert: '#E63946',
+                        success: '#2A9D8F'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    {% block extra_css %}{% endblock %}
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-[#E0F4F5] to-[#E8F4F0] min-h-screen flex flex-col text-gray-800"
+      {% if request.path.startswith('/hospitals') %}x-data="hospitalsRealtime"{% endif %}>
+    
+    <!-- Background Blob Animations (only on main pages) -->
+    {% if request.path == '/' or '/auth/' in request.path %}
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="blob bg-[#0A9396] w-96 h-96 rounded-full top-[-10%] left-[-10%] mix-blend-multiply opacity-20"></div>
+        <div class="blob bg-[#E9C46A] w-80 h-80 rounded-full bottom-[10%] right-[-5%] mix-blend-multiply opacity-20" style="animation-delay: -5s;"></div>
+        <div class="blob bg-[#005F73] w-64 h-64 rounded-full bottom-[-10%] left-[20%] mix-blend-multiply opacity-20" style="animation-delay: -2s;"></div>
+    </div>
+    {% endif %}
+
+    {% include 'partials/navbar.html' %}
+
+    <main class="main-content flex-grow flex flex-col">
+        {% include 'partials/flash_messages.html' %}
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include 'partials/footer.html' %}
+
+    <!-- Global App JS -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/alert-modal.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/hospitals-realtime.js') }}"></script>
+    
+    {% if session.get('user_id') %}
+    <script>
+        // Inject current user data for client-side use
+        window.currentUser = {
+            id: {{ session.get('user_id') }},
+            name: '{{ session.get('username', '') }}',
+            role: '{{ session.get('role', '') }}'
+        };
+    </script>
+    {% endif %}
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,79 @@
+<nav class="sticky top-0 z-50 glass-panel shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <div class="flex items-center">
+                <a href="{{ url_for('main.landing') }}" class="flex items-center gap-2">
+                    <div class="bg-brand text-white p-1.5 rounded-lg flex items-center justify-center shadow-md">
+                        <i class="fa-solid fa-truck-medical text-xl"></i>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight text-deep hidden sm:block">EMERGIX</span>
+                </a>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center space-x-6">
+                {% if not session.get('user_id') %}
+                    <a href="{{ url_for('hospitals.discovery') }}" class="text-deep font-medium hover:text-brand transition">Find Beds</a>
+                    <a href="{{ url_for('auth.login') }}" class="text-deep font-medium hover:text-brand transition">Login</a>
+                    <a href="{{ url_for('auth.register') }}" class="btn-primary">Register</a>
+                {% elif session.get('role') == 'hospital_admin' %}
+                    <a href="{{ url_for('admin.dashboard') }}" class="text-deep font-medium hover:text-brand transition">Dashboard</a>
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" @click.away="open = false" class="flex items-center gap-2 text-deep font-medium focus:outline-none">
+                            <div class="w-8 h-8 rounded-full bg-deep text-white flex items-center justify-center">
+                                <i class="fa-solid fa-user-shield text-xs"></i>
+                            </div>
+                            <span>{{ session.get('username') }}</span>
+                            <i class="fa-solid fa-chevron-down text-xs"></i>
+                        </button>
+                        <div x-show="open" x-transition.opacity class="absolute right-0 mt-2 w-48 glass-card border border-gray-100 rounded-xl shadow-lg py-1 z-50 bg-white">
+                            <a href="{{ url_for('admin.profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Hospital Profile</a>
+                            <a href="{{ url_for('auth.logout') }}" class="block px-4 py-2 text-sm text-alert hover:bg-red-50 font-medium">Logout</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('hospitals.discovery') }}" class="text-deep font-medium hover:text-brand transition">Find Beds</a>
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" @click.away="open = false" class="flex items-center gap-2 text-deep font-medium focus:outline-none">
+                            <div class="w-8 h-8 rounded-full bg-brand text-white flex items-center justify-center">
+                                <i class="fa-solid fa-user text-xs"></i>
+                            </div>
+                            <span>{{ session.get('username') }}</span>
+                            <i class="fa-solid fa-chevron-down text-xs"></i>
+                        </button>
+                        <div x-show="open" x-transition.opacity class="absolute right-0 mt-2 w-48 glass-card border border-gray-100 rounded-xl shadow-lg py-1 z-50 bg-white">
+                            <a href="{{ url_for('hospitals.user_dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">My Alerts</a>
+                            <a href="{{ url_for('auth.logout') }}" class="block px-4 py-2 text-sm text-alert hover:bg-red-50 font-medium">Logout</a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <div class="flex items-center md:hidden" x-data="{ mobileMenuOpen: false }">
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-deep focus:outline-none p-2">
+                    <i class="fa-solid fa-bars text-2xl"></i>
+                </button>
+                
+                <!-- Mobile Menu Dropdown -->
+                <div x-show="mobileMenuOpen" @click.away="mobileMenuOpen = false" x-transition class="absolute top-16 right-4 left-4 glass-card border border-white rounded-xl shadow-xl p-4 flex flex-col gap-3 z-50 bg-white/90">
+                    {% if not session.get('user_id') %}
+                        <a href="{{ url_for('hospitals.discovery') }}" class="block text-center text-deep font-medium p-2 hover:bg-gray-50 rounded">Find Beds</a>
+                        <a href="{{ url_for('auth.login') }}" class="block text-center text-deep font-medium p-2 hover:bg-gray-50 rounded">Login</a>
+                        <a href="{{ url_for('auth.register') }}" class="block text-center btn-primary">Register</a>
+                    {% elif session.get('role') == 'hospital_admin' %}
+                        <div class="font-semibold text-deep border-b pb-2 mb-2 text-center">{{ session.get('username') }}</div>
+                        <a href="{{ url_for('admin.dashboard') }}" class="block text-center text-deep font-medium p-2 hover:bg-gray-50 rounded">Dashboard</a>
+                        <a href="{{ url_for('admin.profile') }}" class="block text-center text-deep font-medium p-2 hover:bg-gray-50 rounded">Profile</a>
+                        <a href="{{ url_for('auth.logout') }}" class="block text-center text-alert font-medium p-2 bg-red-50 rounded">Logout</a>
+                    {% else %}
+                        <div class="font-semibold text-deep border-b pb-2 mb-2 text-center">{{ session.get('username') }}</div>
+                        <a href="{{ url_for('hospitals.discovery') }}" class="block text-center text-deep font-medium p-2 hover:bg-gray-50 rounded">Find Beds</a>
+                        <a href="{{ url_for('hospitals.user_dashboard') }}" class="block text-center text-deep font-medium p-2 hover:bg-gray-50 rounded">My Alerts</a>
+                        <a href="{{ url_for('auth.logout') }}" class="block text-center text-alert font-medium p-2 bg-red-50 rounded">Logout</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>

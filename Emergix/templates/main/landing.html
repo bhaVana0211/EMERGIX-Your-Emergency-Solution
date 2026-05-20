@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <!-- Left Column: Copy & CTAs -->
+        <div class="space-y-8 z-10">
+            <div class="inline-block px-4 py-1.5 rounded-full bg-brand/10 text-brand font-semibold text-sm mb-2 border border-brand/20 shadow-sm backdrop-blur-sm">
+                Serving All Major Cities in India | Real-time Bed Network
+            </div>
+            
+            <h1 class="text-5xl md:text-6xl font-bold tracking-tight text-deep leading-tight">
+                Find a hospital bed near you. <br>
+                <span class="text-brand">Right now.</span>
+            </h1>
+            
+            <p class="text-lg text-gray-700 max-w-lg leading-relaxed">
+                EMERGIX aggregates real-time bed availability across government and private hospitals. 
+                Don't waste crucial time driving from hospital to hospital. Find a bed, alert the hospital, and navigate instantly.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                <a href="{{ url_for('hospitals.discovery') }}" class="btn-primary text-lg text-center flex items-center justify-center gap-2 px-8 py-4 shadow-lg shadow-brand/30">
+                    <i class="fa-solid fa-location-dot"></i> Find Nearby Beds
+                </a>
+                <a href="{{ url_for('auth.hospital_login') }}" class="btn-secondary text-lg text-center flex items-center justify-center gap-2 px-8 py-4 bg-white/70 backdrop-blur-md">
+                    <i class="fa-solid fa-user-doctor"></i> Hospital Staff Login
+                </a>
+            </div>
+        </div>
+
+        <!-- Right Column: Hero Graphic -->
+        <div class="relative z-10 hidden md:block">
+            <!-- Custom abstract SVG graphic representing hospitals, beds, location -->
+            <svg viewBox="0 0 500 500" class="w-full h-auto drop-shadow-2xl" xmlns="http://www.w3.org/2000/svg">
+                <!-- Abstract glowing circles -->
+                <circle cx="250" cy="250" r="200" fill="#0A9396" fill-opacity="0.05" />
+                <circle cx="250" cy="250" r="140" fill="#0A9396" fill-opacity="0.1" />
+                
+                <!-- Main Glass Card -->
+                <rect x="70" y="100" width="360" height="280" rx="24" fill="white" fill-opacity="0.8" stroke="white" stroke-width="2" style="backdrop-filter: blur(10px); filter: drop-shadow(0 20px 30px rgba(0,0,0,0.1));"/>
+                
+                <!-- Hospital Header -->
+                <rect x="100" y="130" width="48" height="48" rx="12" fill="#0A9396" />
+                <path d="M124 146v16m-8-8h16" stroke="white" stroke-width="3" stroke-linecap="round" />
+                <rect x="165" y="140" width="160" height="12" rx="6" fill="#005F73" />
+                <rect x="165" y="160" width="100" height="8" rx="4" fill="#94A3B8" />
+                
+                <!-- Bed Stats -->
+                <g transform="translate(100, 210)">
+                    <rect x="0" y="0" width="85" height="70" rx="12" fill="#F8F9FA" />
+                    <circle cx="42.5" cy="25" r="10" fill="#E9C46A" />
+                    <rect x="22.5" y="45" width="40" height="6" rx="3" fill="#94A3B8" />
+                    <rect x="22.5" y="55" width="20" height="4" rx="2" fill="#94A3B8" />
+                </g>
+                <g transform="translate(205, 210)">
+                    <rect x="0" y="0" width="85" height="70" rx="12" fill="#F8F9FA" />
+                    <circle cx="42.5" cy="25" r="10" fill="#2A9D8F" />
+                    <rect x="22.5" y="45" width="40" height="6" rx="3" fill="#94A3B8" />
+                    <rect x="22.5" y="55" width="20" height="4" rx="2" fill="#94A3B8" />
+                </g>
+                <g transform="translate(310, 210)">
+                    <rect x="0" y="0" width="85" height="70" rx="12" fill="#F8F9FA" />
+                    <circle cx="42.5" cy="25" r="10" fill="#E63946" />
+                    <rect x="22.5" y="45" width="40" height="6" rx="3" fill="#94A3B8" />
+                    <rect x="22.5" y="55" width="20" height="4" rx="2" fill="#94A3B8" />
+                </g>
+                
+                <!-- Map Pin -->
+                <path d="M250 330 C250 330 220 290 220 260 A30 30 0 1 1 280 260 C280 290 250 330 250 330 Z" fill="#E63946" filter="drop-shadow(0 4px 6px rgba(230,57,70,0.3))" />
+                <circle cx="250" cy="260" r="12" fill="white" />
+            </svg>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <div class="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 pb-12">
+        <div class="glass-card p-8 bg-white/60">
+            <div class="w-14 h-14 rounded-2xl bg-brand/10 text-brand flex items-center justify-center text-2xl mb-6">
+                <i class="fa-solid fa-server"></i>
+            </div>
+            <h3 class="text-xl font-bold text-deep mb-3">Real-Time Beds</h3>
+            <p class="text-gray-600">Hospitals update their bed availability instantly. See exactly what's available right now, including ICU and oxygen beds.</p>
+        </div>
+        
+        <div class="glass-card p-8 bg-white/60">
+            <div class="w-14 h-14 rounded-2xl bg-brand/10 text-brand flex items-center justify-center text-2xl mb-6">
+                <i class="fa-solid fa-map-location-dot"></i>
+            </div>
+            <h3 class="text-xl font-bold text-deep mb-3">Instant Navigation</h3>
+            <p class="text-gray-600">One tap opens Google Maps with turn-by-turn directions to the hospital from your exact current location.</p>
+        </div>
+
+        <div class="glass-card p-8 bg-white/60">
+            <div class="w-14 h-14 rounded-2xl bg-brand/10 text-brand flex items-center justify-center text-2xl mb-6">
+                <i class="fa-solid fa-bell"></i>
+            </div>
+            <h3 class="text-xl font-bold text-deep mb-3">Pre-Arrival Alerts</h3>
+            <p class="text-gray-600">Notify the hospital emergency room that you are on the way. Reserve your spot in the queue before you even arrive.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

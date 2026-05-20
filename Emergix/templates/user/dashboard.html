@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}My Dashboard - EMERGIX{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-12">
+    <div class="flex justify-between items-end mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-deep mb-2">My Dashboard</h1>
+            <p class="text-gray-500">Track your pre-arrival alerts and bookings.</p>
+        </div>
+        <a href="{{ url_for('hospitals.discovery') }}" class="btn-primary py-2 text-sm"><i class="fa-solid fa-search mr-1"></i> Find Beds</a>
+    </div>
+
+    <div class="glass-card overflow-hidden bg-white/80">
+        <div class="p-6 border-b border-gray-100 bg-white flex justify-between items-center">
+            <h2 class="text-xl font-bold text-gray-800">Alert History</h2>
+            <span class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded-full">{{ alerts|length }} total</span>
+        </div>
+        
+        {% if alerts %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50/50 text-xs uppercase text-gray-500 tracking-wider">
+                        <th class="p-4 border-b border-gray-100 font-semibold">Date & Ref</th>
+                        <th class="p-4 border-b border-gray-100 font-semibold">Hospital</th>
+                        <th class="p-4 border-b border-gray-100 font-semibold">Bed Type</th>
+                        <th class="p-4 border-b border-gray-100 font-semibold">Status</th>
+                        <th class="p-4 border-b border-gray-100 font-semibold text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for alert in alerts %}
+                    <tr class="hover:bg-gray-50/50 transition" x-data="{ isCancelling: false, cancelled: {% if alert.status == 'cancelled' %}true{% else %}false{% endif %} }">
+                        <td class="p-4">
+                            <div class="font-mono text-sm font-bold text-deep">{{ alert.booking_ref }}</div>
+                            <div class="text-xs text-gray-400 mt-1 local-time" data-utc="{{ alert.created_at.isoformat() }}Z"></div>
+                        </td>
+                        <td class="p-4">
+                            <div class="font-bold text-gray-900">{{ alert.hospital.name }}</div>
+                            <div class="text-xs text-gray-500">{{ alert.patient_name }}</div>
+                        </td>
+                        <td class="p-4">
+                            <span class="bg-brand/10 text-brand text-xs font-bold px-2 py-1 rounded uppercase">{{ BED_TYPE_LABELS.get(alert.bed_type_needed, alert.bed_type_needed) }}</span>
+                        </td>
+                        <td class="p-4">
+                            <span x-show="!cancelled" class="status-badge status-{{ alert.status }} text-xs inline-block">{{ alert.status }}</span>
+                            <span x-show="cancelled" class="status-badge status-cancelled text-xs inline-block" style="display: none;">cancelled</span>
+                        </td>
+                        <td class="p-4 text-right">
+                            {% if alert.status == 'pending' %}
+                            <button x-show="!cancelled" 
+                                    @click="isCancelling = true; fetch('/api/alerts/{{ alert.id }}/cancel', {method: 'POST'}).then(r=>r.json()).then(d=>{if(d.success) cancelled = true; isCancelling=false;})"
+                                    class="text-alert hover:bg-red-50 px-3 py-1 rounded text-sm font-medium transition"
+                                    :disabled="isCancelling">
+                                <span x-show="!isCancelling">Cancel</span>
+                                <i x-show="isCancelling" class="fa-solid fa-spinner fa-spin" style="display: none;"></i>
+                            </button>
+                            {% endif %}
+                            <a href="https://www.google.com/maps/dir/?api=1&destination={{ alert.hospital.latitude }},{{ alert.hospital.longitude }}&travelmode=driving" 
+                               target="_blank" class="text-gray-500 hover:text-brand px-2 py-1 rounded text-sm transition inline-block">
+                                <i class="fa-solid fa-map"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-12 text-center text-gray-500">
+            <div class="text-5xl mb-4 text-gray-300"><i class="fa-regular fa-bell-slash"></i></div>
+            <h3 class="text-xl font-bold text-gray-700 mb-2">No alerts yet</h3>
+            <p>You haven't sent any pre-arrival alerts to hospitals.</p>
+            <a href="{{ url_for('hospitals.discovery') }}" class="btn-primary inline-block mt-6">Find Nearby Beds</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.local-time').forEach(el => {
+            const utcDate = new Date(el.getAttribute('data-utc'));
+            if (!isNaN(utcDate)) {
+                el.textContent = utcDate.toLocaleDateString() + ' ' + utcDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            }
+        });
+    });
+</script>
+
+<style>
+.status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-weight: 600; text-transform: uppercase; }
+.status-pending { background-color: #fef3c7; color: #92400e; }
+.status-acknowledged { background-color: #d1fae5; color: #065f46; }
+.status-admitted { background-color: #e0e7ff; color: #3730a3; }
+.status-cancelled { background-color: #fee2e2; color: #991b1b; }
+</style>
+{% endblock %}
