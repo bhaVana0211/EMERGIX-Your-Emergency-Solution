@@ -272,7 +272,7 @@ def update_beds():
             'total_beds': inventory.total_beds,
             'occupancy_pct': inventory.occupancy_pct,
             'updated_at': inventory.last_updated.isoformat()
-        }, broadcast=True)
+        })
 
         return jsonify({
             'success': True,

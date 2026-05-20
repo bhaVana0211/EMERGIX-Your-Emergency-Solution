@@ -75,7 +75,7 @@ def run_simulator(app=None, socketio=None):
                             'total_beds': item.total_beds,
                             'occupancy_pct': item.occupancy_pct,
                             'updated_at': item.last_updated.isoformat()
-                        }, broadcast=True)
+                        })
 
             except Exception as e:
                 logger.error(f"Simulator error: {e}")

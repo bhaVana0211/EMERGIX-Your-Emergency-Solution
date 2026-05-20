@@ -73,7 +73,7 @@ def alerts():
     ).all()
     return render_template('admin/alerts.html',
                            hospital=hospital,
-                           alerts=all_alerts)
+                           alerts=[a.to_dict() for a in all_alerts])
 
 
 @admin_bp.route('/profile')
