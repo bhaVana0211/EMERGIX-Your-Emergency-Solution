@@ -1,0 +1,88 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Hospital Profile — EMERGIX Admin{% endblock %}
+{% block topbar_title %}Hospital Profile{% endblock %}
+
+{% block content %}
+<div style="max-width:720px;">
+  <div style="margin-bottom:1.5rem;">
+    <h2 class="page-title">Hospital Profile</h2>
+    <p class="page-subtitle">Update your hospital's public contact information</p>
+  </div>
+
+  <div class="glass" style="padding:2rem;margin-bottom:1.25rem;">
+    <!-- Read-only info -->
+    <h4 style="font-family:var(--font-display);color:var(--teal-dark);margin-bottom:1rem">
+      <i class="fa-solid fa-lock" style="font-size:.9rem"></i> Hospital Identity
+      <span style="font-size:.75rem;font-weight:400;color:var(--slate);margin-left:.5rem">(Contact admin to update)</span>
+    </h4>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+      {% for label, val in [('Hospital Name', hospital.name), ('City', hospital.city), ('State', hospital.state), ('Type', hospital.hospital_type.title())] %}
+      <div>
+        <div style="font-size:.78rem;font-weight:600;color:var(--slate);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem">{{ label }}</div>
+        <div style="font-weight:600;color:var(--text-soft)">{{ val or '—' }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    <div style="padding:.75rem 1rem;background:rgba(10,147,150,.05);border-radius:10px;font-size:.83rem;color:var(--slate);">
+      <i class="fa-solid fa-location-dot" style="color:var(--teal)"></i>
+      Coordinates: {{ hospital.latitude }}, {{ hospital.longitude }}
+    </div>
+  </div>
+
+  <div class="glass" style="padding:2rem;">
+    <h4 style="font-family:var(--font-display);color:var(--teal-dark);margin-bottom:1.25rem">
+      <i class="fa-solid fa-pen"></i> Editable Information
+    </h4>
+    <form method="POST" action="{{ url_for('admin.profile') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-group">
+          <label class="form-label"><i class="fa-solid fa-phone"></i> Phone Number</label>
+          <input type="tel" class="form-control" name="phone" value="{{ hospital.phone or '' }}" placeholder="Hospital phone">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fa-solid fa-envelope"></i> Email Address</label>
+          <input type="email" class="form-control" name="email" value="{{ hospital.email or '' }}" placeholder="Contact email">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label"><i class="fa-solid fa-globe"></i> Website</label>
+          <input type="url" class="form-control" name="website" value="{{ hospital.website or '' }}" placeholder="https://...">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label"><i class="fa-solid fa-file-lines"></i> Hospital Description</label>
+          <textarea class="form-control" name="description" rows="3" placeholder="Brief description of specialities and services…">{{ hospital.description or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer;">
+            <input type="checkbox" name="emergency_24h" value="1" {% if hospital.emergency_24h %}checked{% endif %}
+                   style="accent-color:var(--teal);width:18px;height:18px;">
+            <div>
+              <div style="font-weight:600;font-size:.9rem">24-Hour Emergency</div>
+              <div style="font-size:.78rem;color:var(--slate)">Emergency department is available 24/7</div>
+            </div>
+          </label>
+        </div>
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer;">
+            <input type="checkbox" name="ambulance" value="1" {% if hospital.ambulance %}checked{% endif %}
+                   style="accent-color:var(--teal);width:18px;height:18px;">
+            <div>
+              <div style="font-weight:600;font-size:.9rem">Ambulance Service</div>
+              <div style="font-size:.78rem;color:var(--slate)">Hospital provides ambulance services</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:1rem;margin-top:1.25rem;">
+        <button type="submit" class="btn btn-primary">
+          <i class="fa-solid fa-floppy-disk"></i> Save Changes
+        </button>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+<style>@media(max-width:600px){div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}}</style>
+{% endblock %}

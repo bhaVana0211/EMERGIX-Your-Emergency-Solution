@@ -1,0 +1,43 @@
+<nav class="navbar">
+  <a href="{{ url_for('main.landing') }}" class="navbar-brand">
+    <div class="brand-icon"><i class="fa-solid fa-cross"></i></div>
+    <span class="brand-name">EMERG<em>IX</em></span>
+  </a>
+
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <i class="fa-solid fa-bars"></i>
+  </button>
+
+  <div class="nav-links" id="nav-links">
+    {% if session.get('user_id') %}
+      {% if session.get('role') == 'hospital_admin' %}
+        <a href="{{ url_for('admin.dashboard') }}" class="nav-link {% if request.endpoint and request.endpoint.startswith('admin.') %}active{% endif %}">
+          <i class="fa-solid fa-gauge-high"></i> Dashboard
+        </a>
+        <a href="{{ url_for('admin.beds') }}" class="nav-link">
+          <i class="fa-solid fa-bed"></i> Beds
+        </a>
+        <a href="{{ url_for('admin.alerts') }}" class="nav-link">
+          <i class="fa-solid fa-bell"></i> Alerts
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="nav-link">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
+      {% else %}
+        <a href="{{ url_for('hospitals.discovery') }}" class="nav-link {% if request.endpoint == 'hospitals.discovery' %}active{% endif %}">
+          <i class="fa-solid fa-magnifying-glass-location"></i> Find Beds
+        </a>
+        <a href="{{ url_for('user.dashboard') }}" class="nav-link {% if request.endpoint == 'user.dashboard' %}active{% endif %}">
+          <i class="fa-solid fa-user"></i> My Alerts
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="nav-link">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
+      {% endif %}
+    {% else %}
+      <a href="{{ url_for('hospitals.discovery') }}" class="nav-link">Find Hospitals</a>
+      <a href="{{ url_for('auth.login') }}" class="nav-link">Login</a>
+      <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">Register Free</a>
+    {% endif %}
+  </div>
+</nav>

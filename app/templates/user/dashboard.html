@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}My Alerts — EMERGIX{% endblock %}
+
+{% block content %}
+<div style="max-width:900px;margin:0 auto;padding:2rem 1.5rem;">
+
+  <div class="section-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+      <div>
+        <h2 class="page-title">My Alerts</h2>
+        <p class="page-subtitle">Track all your hospital pre-arrival alerts</p>
+      </div>
+      <a href="{{ url_for('hospitals.discovery') }}" class="btn btn-primary">
+        <i class="fa-solid fa-magnifying-glass-location"></i> Find Hospitals
+      </a>
+    </div>
+  </div>
+
+  {% if alerts %}
+  <div style="display:flex;flex-direction:column;gap:.85rem;">
+    {% for alert in alerts %}
+    <div class="glass" style="padding:1.5rem;transition:all var(--transition);" id="alert-row-{{ alert.id }}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.5rem;">
+            <span class="badge badge-{{ alert.status }}">
+              <span class="status-dot {{ alert.status }}"></span>
+              {{ alert.status.title() }}
+            </span>
+            <code style="font-size:.78rem;background:rgba(10,147,150,.07);padding:.15rem .5rem;border-radius:5px;color:var(--teal-dark)">{{ alert.booking_ref }}</code>
+          </div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:1.05rem;color:var(--text);margin-bottom:.2rem">
+            <i class="fa-solid fa-hospital" style="color:var(--teal)"></i>
+            {{ alert.hospital.name if alert.hospital else 'Unknown Hospital' }}
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:.75rem;margin-top:.4rem;">
+            <span style="font-size:.85rem;color:var(--slate);display:flex;align-items:center;gap:.35rem">
+              <i class="fa-solid fa-bed" style="color:var(--teal)"></i>
+              {{ bed_type_labels.get(alert.bed_type_needed, alert.bed_type_needed.title()) }}
+            </span>
+            <span style="font-size:.85rem;color:var(--slate);display:flex;align-items:center;gap:.35rem">
+              <i class="fa-solid fa-clock" style="color:var(--teal)"></i>
+              {{ alert.created_at.strftime('%d %b %Y, %I:%M %p') if alert.created_at else '—' }}
+            </span>
+            {% if alert.distance_km %}
+            <span style="font-size:.85rem;color:var(--slate);display:flex;align-items:center;gap:.35rem">
+              <i class="fa-solid fa-route" style="color:var(--teal)"></i>
+              {{ alert.distance_km }} km
+            </span>
+            {% endif %}
+          </div>
+          {% if alert.notes %}
+          <div style="font-size:.83rem;color:var(--slate);background:rgba(10,147,150,.05);border-radius:8px;padding:.4rem .7rem;margin-top:.6rem;font-style:italic;">
+            "{{ alert.notes }}"
+          </div>
+          {% endif %}
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:.5rem;align-items:flex-end;flex-shrink:0">
+          {% if alert.acknowledged_at %}
+          <div style="font-size:.78rem;color:var(--success)">
+            <i class="fa-solid fa-check-circle"></i> Acknowledged {{ alert.acknowledged_at.strftime('%I:%M %p') if alert.acknowledged_at else '' }}
+          </div>
+          {% endif %}
+          {% if alert.status == 'pending' %}
+          <button class="btn btn-sm" style="background:rgba(230,57,70,.08);color:var(--danger);border:1px solid rgba(230,57,70,.2);"
+                  onclick="cancelAlert({{ alert.id }}, this)">
+            <i class="fa-solid fa-xmark"></i> Cancel
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="glass empty-state" style="margin-top:2rem">
+    <div class="empty-state-icon"><i class="fa-solid fa-bell-slash"></i></div>
+    <h3>No alerts yet</h3>
+    <p>When you send a hospital alert, it will appear here so you can track its status.</p>
+    <a href="{{ url_for('hospitals.discovery') }}" class="btn btn-primary">
+      <i class="fa-solid fa-magnifying-glass-location"></i> Find a Hospital
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+<div id="toast-container" class="toast-container"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function cancelAlert(alertId, btn) {
+  if (!confirm('Cancel this alert?')) return;
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+  try {
+    const res = await fetch(`/api/alerts/${alertId}/cancel`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      const row = document.getElementById(`alert-row-${alertId}`);
+      if (row) {
+        const badge = row.querySelector('.badge');
+        if (badge) { badge.className = 'badge badge-cancelled'; badge.innerHTML = '<span class="status-dot cancelled"></span> Cancelled'; }
+        btn.remove();
+      }
+    } else {
+      alert(data.error || 'Could not cancel.');
+      btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Cancel';
+    }
+  } catch { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Cancel'; }
+}
+
+// Listen for real-time acknowledgements
+if (typeof io !== 'undefined') {
+  const socket = io({ transports: ['websocket','polling'] });
+  socket.on('alert_acknowledged', (data) => {
+    const el = document.querySelector(`code[contains="${data.booking_ref}"]`);
+    location.reload(); // Simple refresh on acknowledgement
+  });
+}
+</script>
+{% endblock %}

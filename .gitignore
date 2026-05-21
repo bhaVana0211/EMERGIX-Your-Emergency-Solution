@@ -1,40 +1,15 @@
-# Python
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
 *.egg-info/
-dist/
-build/
-*.egg
-
-# Virtual environments
-venv/
-.venv/
-env/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Environment
 .env
-
-# Database (dev only)
 instance/
 *.db
-*.sqlite3
-
-# OS
+*.sqlite
 .DS_Store
-Thumbs.db
-
-# Docker
+venv/
+env/
+.venv/
+dist/
+build/
 *.log
-
-# Misc
-*.bak
-*.tmp
+.pytest_cache/

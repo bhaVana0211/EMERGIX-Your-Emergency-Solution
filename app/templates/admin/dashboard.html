@@ -1,0 +1,139 @@
+{% extends 'admin/base_admin.html' %}
+{% set pending_count = pending_alerts %}
+{% block title %}Dashboard — EMERGIX Admin{% endblock %}
+{% block topbar_title %}Overview Dashboard{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="connection-banner" id="connection-banner">
+  <i class="fa-solid fa-circle-notch fa-spin"></i> Reconnecting to live updates…
+</div>
+
+<!-- Stat Cards -->
+<div class="grid-4" style="margin-bottom:1.5rem;">
+  <div class="stat-card animate-fade">
+    <div class="stat-icon"><i class="fa-solid fa-bed"></i></div>
+    <div class="stat-value">{{ total_beds }}</div>
+    <div class="stat-label">Total Beds</div>
+  </div>
+  <div class="stat-card animate-fade anim-delay-1">
+    <div class="stat-icon" style="background:rgba(42,157,143,.12);color:var(--success)"><i class="fa-solid fa-bed-pulse"></i></div>
+    <div class="stat-value" style="color:var(--success)">{{ total_available }}</div>
+    <div class="stat-label">Available Now</div>
+  </div>
+  <div class="stat-card animate-fade anim-delay-2">
+    <div class="stat-icon" style="background:rgba(10,147,150,.1);color:var(--teal)"><i class="fa-solid fa-bell"></i></div>
+    <div class="stat-value">{{ today_alerts }}</div>
+    <div class="stat-label">Today's Alerts</div>
+  </div>
+  <div class="stat-card animate-fade anim-delay-3">
+    <div class="stat-icon" style="background:rgba(233,196,106,.15);color:#C47E0C"><i class="fa-solid fa-hourglass-half"></i></div>
+    <div class="stat-value" style="color:#C47E0C" id="stat-pending">{{ pending_alerts }}</div>
+    <div class="stat-label">Pending Acknowledgements</div>
+  </div>
+</div>
+
+<!-- Chart + Recent Alerts -->
+<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:1.25rem;margin-bottom:1.5rem;">
+
+  <!-- Occupancy Chart -->
+  <div class="glass" style="padding:1.5rem;">
+    <h4 style="font-family:var(--font-display);color:var(--teal-dark);margin-bottom:1.25rem">Bed Occupancy by Type</h4>
+    <div class="chart-container">
+      <canvas id="occupancyChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Recent Alerts -->
+  <div class="glass" style="padding:1.5rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <h4 style="font-family:var(--font-display);color:var(--teal-dark)">Recent Alerts</h4>
+      <a href="{{ url_for('admin.alerts') }}" class="btn btn-ghost btn-sm">View All →</a>
+    </div>
+    {% if recent_alerts %}
+    <div style="display:flex;flex-direction:column;gap:.6rem;">
+      {% for alert in recent_alerts %}
+      <div style="display:flex;align-items:center;gap.75rem;padding:.75rem;background:rgba(255,255,255,.5);border-radius:10px;border:1px solid rgba(10,147,150,.08);">
+        <span class="status-dot {{ alert.status }}" style="flex-shrink:0;margin-right:.5rem"></span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ alert.patient_name }}</div>
+          <div style="font-size:.78rem;color:var(--slate)">
+            {{ bed_type_labels.get(alert.bed_type_needed, alert.bed_type_needed.title()) }} ·
+            {{ alert.created_at.strftime('%I:%M %p') if alert.created_at else '' }}
+          </div>
+        </div>
+        {% if alert.status == 'pending' %}
+        <button class="btn btn-primary btn-sm" onclick="updateAlertStatus({{ alert.id }},'acknowledged',this)">
+          <i class="fa-solid fa-check"></i>
+        </button>
+        {% else %}
+        <span class="badge badge-{{ alert.status }}" style="font-size:.72rem">{{ alert.status.title() }}</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:2rem;color:var(--slate);">
+      <i class="fa-solid fa-bell-slash" style="font-size:2rem;color:var(--teal-light);margin-bottom:.5rem;display:block"></i>
+      No recent alerts
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Bed Inventory Grid -->
+<div class="glass" style="padding:1.5rem;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+    <h4 style="font-family:var(--font-display);color:var(--teal-dark)">Current Bed Status</h4>
+    <a href="{{ url_for('admin.beds') }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-pen"></i> Update Counts</a>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.85rem;">
+    {% for b in inventory %}
+    <div style="background:rgba(255,255,255,.6);border:1px solid rgba(10,147,150,.1);border-radius:12px;padding:1rem;text-align:center;">
+      <div style="width:36px;height:36px;background:rgba(10,147,150,.1);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--teal);margin:0 auto .6rem;font-size:1rem">
+        <i class="fa-solid {{ bed_type_icons.get(b.bed_type,'fa-bed') }}"></i>
+      </div>
+      <div style="font-size:.78rem;color:var(--slate);font-weight:600;margin-bottom:.2rem">{{ bed_type_labels.get(b.bed_type,b.bed_type.title()) }}</div>
+      <div style="font-family:var(--font-display);font-size:1.5rem;font-weight:800;color:{% if b.available_beds == 0 %}var(--danger){% elif b.occupancy_pct() >= 80 %}#C47E0C{% else %}var(--teal-dark){% endif %}">
+        {{ b.available_beds }}
+      </div>
+      <div style="font-size:.72rem;color:var(--slate-light)">of {{ b.total_beds }}</div>
+      <div class="occ-bar" style="margin-top:.5rem">
+        <div class="occ-bar-fill {% if b.occupancy_pct() >= 90 %}progress-critical{% elif b.occupancy_pct() >= 70 %}progress-warning{% else %}progress-ok{% endif %}"
+             style="width:{{ b.occupancy_pct() }}%"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% block scripts %}
+<script>
+// Chart
+const labels = [{% for b in inventory %}"{{ bed_type_labels.get(b.bed_type,b.bed_type.title()) }}"{% if not loop.last %},{% endif %}{% endfor %}];
+const avail  = [{% for b in inventory %}{{ b.available_beds }}{% if not loop.last %},{% endif %}{% endfor %}];
+const occ    = [{% for b in inventory %}{{ b.total_beds - b.available_beds }}{% if not loop.last %},{% endif %}{% endfor %}];
+new Chart(document.getElementById('occupancyChart'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [
+      { label: 'Available', data: avail, backgroundColor: 'rgba(10,147,150,.65)', borderRadius: 6 },
+      { label: 'Occupied',  data: occ,   backgroundColor: 'rgba(230,57,70,.4)',   borderRadius: 6 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { family: 'DM Sans', size: 11 } } } },
+    scales: {
+      x: { stacked: true, grid: { display: false }, ticks: { font: { family: 'DM Sans', size: 10 } } },
+      y: { stacked: true, beginAtZero: true, grid: { color: 'rgba(10,147,150,.07)' }, ticks: { font: { family: 'DM Sans', size: 10 } } }
+    }
+  }
+});
+</script>
+{% endblock %}
+{% endblock %}

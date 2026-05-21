@@ -1,166 +1,156 @@
-# EMERGIX - Hospital Live Bed Availability & Booking Platform
+# EMERGIX — Hospital Live Bed Availability & Booking Platform
 
-Real-time hospital bed tracking and pre-arrival alerting system for citizens across India. Find available beds instantly, send alerts to hospitals before you arrive, and navigate directly via Google Maps.
-
----
-
-## Features
-
-- **Geolocation Discovery** - Instantly find hospitals near you using your browser's location.
-- **Live Bed Tracking** - See real-time availability of ICU, Oxygen, General, Ventilator, and Emergency beds.
-- **Real-time Updates** - Hospital bed changes push to all clients instantly via WebSockets (Socket.IO).
-- **Pre-Arrival Alerts** - Patients send a heads-up to the hospital ER while en route.
-- **Hospital Admin Dashboard** - Staff portal to manage beds, acknowledge alerts, and update profiles.
-- **Google OAuth Login** - Patients can sign in with their Google account for quick access.
-- **Pan-India Coverage** - Hospitals across Delhi, Mumbai, Bengaluru, Chennai, Kolkata, Bhubaneswar, and more.
+> Real-time hospital bed discovery, pre-arrival alerts, and live admin dashboards for Bhubaneswar, Odisha.
 
 ---
 
-## Tech Stack
+## Quick Start
 
-| Layer        | Technology                                      |
-|--------------|--------------------------------------------------|
-| Backend      | Python 3.10+, Flask 3.x, Flask-SocketIO          |
-| Database     | PostgreSQL + PostGIS (SQLite fallback for dev)    |
-| Frontend     | Jinja2 templates, Alpine.js, Tailwind CSS (CDN)  |
-| Real-time    | Socket.IO (eventlet), Redis message queue         |
-| Auth         | Session-based + Google OAuth (Authlib)            |
-| Deployment   | Docker, Docker Compose, Nginx, Gunicorn           |
+```bash
+# 1. Clone and enter
+git clone <your-repo-url>
+cd EMERGIX
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Copy environment config
+cp .env.example .env
+
+# 4. Seed the database (20 Bhubaneswar hospitals + admin accounts)
+python seed_data.py
+
+# 5. Run the app
+python run.py
+```
+
+Open **http://localhost:5000**
+
+---
+
+## Default Credentials
+
+| Role | Username / Email | Password |
+|---|---|---|
+| Demo Patient | demo@emergix.health | Demo@1234 |
+| Hospital Admin (AIIMS) | admin_1 | Admin@123 |
+| Hospital Admin (Capital) | admin_2 | Admin@123 |
+| … (all 20 hospitals) | admin_1 … admin_20 | Admin@123 |
+| Legacy admin | management | management123 |
 
 ---
 
 ## Project Structure
 
 ```
-EMERGIX-Your-Emergency-Solution/
-├── Emergix/                      # Flask application package
-│   ├── __init__.py               # Application factory
-│   ├── app.py                    # Entry point (dev server)
-│   ├── models.py                 # SQLAlchemy models (User, Hospital, BedInventory, etc.)
-│   ├── oauth.py                  # Authlib OAuth registry
-│   ├── sockets.py                # Socket.IO event handlers
+EMERGIX/
+├── app/
+│   ├── __init__.py          # App factory
+│   ├── config.py            # Environment config
+│   ├── extensions.py        # Flask extensions
+│   ├── models.py            # SQLAlchemy models
+│   ├── sockets.py           # WebSocket event handlers
 │   ├── blueprints/
-│   │   ├── admin.py              # Hospital admin routes
-│   │   ├── api.py                # JSON API endpoints
-│   │   ├── auth.py               # Login, Register, Google OAuth, Logout
-│   │   ├── hospitals.py          # Discovery & detail pages
-│   │   └── main.py               # Landing page & health check
+│   │   ├── auth.py          # Login, register, logout
+│   │   ├── main.py          # Landing, health check
+│   │   ├── hospitals.py     # Patient discovery + detail
+│   │   ├── admin.py         # Admin dashboard routes
+│   │   ├── api.py           # JSON API endpoints
+│   │   └── user.py          # Patient dashboard
 │   ├── utils/
-│   │   ├── alerts.py             # Bed type constants & booking ref generator
-│   │   ├── decorators.py         # Route protection decorators
-│   │   └── geo.py                # Haversine distance & coordinate helpers
-│   ├── static/
-│   │   ├── css/
-│   │   │   ├── main.css          # Core design system (glassmorphism)
-│   │   │   └── admin.css         # Admin dashboard styles
-│   │   └── js/
-│   │       ├── app.js            # Geolocation, hospital fetching, Alpine stores
-│   │       ├── admin-realtime.js # Admin Socket.IO client
-│   │       ├── alert-modal.js    # Pre-arrival alert form
-│   │       └── hospitals-realtime.js  # Patient Socket.IO client
-│   └── templates/
-│       ├── base.html             # Master layout
-│       ├── main/landing.html     # Landing page
-│       ├── auth/                 # Login, Register, Hospital Login
-│       ├── hospitals/            # Discovery, Detail
-│       ├── admin/                # Dashboard, Beds, Alerts, Profile
-│       ├── user/                 # Patient dashboard
-│       ├── errors/               # 404, 500
-│       └── partials/             # Navbar, Footer, Flash messages, Alert modal
-├── nginx/
-│   └── nginx.conf                # Nginx reverse proxy config
-├── docker-compose.yml            # Full-stack orchestration
-├── Dockerfile                    # Web service container
-├── requirements.txt              # Python dependencies
-├── seed_data.py                  # Database seeder
-├── seed_hospitals.json           # Hospital dataset (pan-India)
-├── mock_bed_simulator.py         # Live bed update simulator (dev/demo)
-├── .env.example                  # Environment variable template
-├── .gitignore
-├── DEPLOYMENT.md                 # Production deployment guide
-└── README.md                     # This file
+│   │   ├── geo.py           # Haversine distance calc
+│   │   └── decorators.py    # Auth decorators
+│   ├── templates/           # Jinja2 templates
+│   └── static/
+│       ├── css/main.css     # Glassmorphism design system
+│       ├── css/admin.css    # Admin dashboard styles
+│       └── js/              # Geolocation, alerts, WebSockets
+├── seed_data.py             # Database seeder
+├── seed_hospitals.json      # 20 Bhubaneswar hospitals (real data)
+├── mock_bed_simulator.py    # Background bed count simulator
+├── run.py                   # Entry point
+├── requirements.txt
+├── Dockerfile
+└── docker-compose.yml
 ```
 
 ---
 
-## Quick Start (Local Development)
+## Architecture
 
-### 1. Clone the repository
-```bash
-git clone https://github.com/bhaVana0211/EMERGIX-Your-Emergency-Solution.git
-cd EMERGIX-Your-Emergency-Solution
-```
+- **Backend:** Python 3.11 + Flask 3.x + Flask-SocketIO (threading mode)
+- **Database:** SQLite (dev) / PostgreSQL (prod) via SQLAlchemy 2.x
+- **Real-time:** WebSockets via Socket.IO — bed updates broadcast live
+- **Geolocation:** Browser GPS + Haversine formula for distance calculation
+- **Frontend:** Server-rendered Jinja2 + Alpine.js + vanilla JS (no SPA framework)
+- **Design:** Glassmorphism with DM Sans + Outfit fonts, teal/white hospital palette
+- **Auth:** Two separate login flows (patient vs hospital admin) with Flask sessions
 
-### 2. Create a virtual environment (recommended)
-```bash
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# macOS/Linux
-source venv/bin/activate
-```
+---
 
-### 3. Install dependencies
-```bash
-pip install -r requirements.txt
-```
+## Key Features
 
-### 4. Configure environment
-```bash
-cp .env.example .env
-```
-Edit `.env` and set your values. For local dev, the defaults use SQLite so no Postgres is needed.
+| Feature | Details |
+|---|---|
+| Auto-location | Browser geolocation → hospitals within 10 km radius |
+| Live bed counts | 8 bed types per hospital with real-time WebSocket updates |
+| Google Maps navigation | One-tap directions from current location to hospital |
+| Pre-arrival alert | Patient sends alert → hospital admin notified instantly via WebSocket |
+| Admin bed management | +/− buttons with auto-save and live broadcast to all users |
+| Two-role auth | Separate patient and hospital admin login pages and dashboards |
+| 20 seed hospitals | Real Bhubaneswar hospitals with accurate GPS coordinates |
+| Bed simulator | `mock_bed_simulator.py` randomises counts to simulate live data |
 
-### 5. Seed the database
-```bash
-python seed_data.py
-```
-This loads 12 hospitals across major Indian cities with demo users.
+---
 
-### 6. Run the application
-```bash
-python Emergix/app.py
-```
-Open http://localhost:5000 in your browser.
+## API Endpoints
 
-### 7. (Optional) Run the bed simulator
-In a separate terminal:
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/api/hospitals/nearby` | Patient | Nearby hospitals with bed data |
+| GET | `/api/hospitals/<id>` | Any | Single hospital detail |
+| POST | `/api/alerts/create` | Patient | Send pre-arrival alert |
+| POST | `/api/alerts/<id>/cancel` | Patient | Cancel own alert |
+| PUT | `/api/admin/beds/update` | Admin | Update bed counts |
+| PUT | `/api/admin/alerts/<id>/status` | Admin | Acknowledge/admit/cancel alert |
+| GET | `/health` | Public | System health check |
+
+---
+
+## Running the Bed Simulator
+
+In a separate terminal while the app is running:
+
 ```bash
 python mock_bed_simulator.py
 ```
 
----
-
-## Default Credentials
-
-| Role             | Username                       | Password        |
-|------------------|--------------------------------|-----------------|
-| Hospital Admin   | `admin_aiims_new_delhi`        | `Admin@123`     |
-| Legacy Admin     | `management`                   | `management123` |
-| Demo Patient     | `priya`                        | `patient123`    |
+This randomly adjusts bed counts every 15–45 seconds to simulate live hospital data. Updates are broadcast via WebSocket to all connected patients.
 
 ---
 
-## Google OAuth Setup
+## Docker Deployment
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a project > **APIs & Services** > **Credentials**
-3. Create an **OAuth 2.0 Client ID** (Web application)
-4. Add authorized redirect URI: `http://localhost:5000/auth/google/callback`
-5. Copy Client ID and Secret into your `.env`:
-   ```
-   GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
-   GOOGLE_CLIENT_SECRET=your-secret
-   ```
+```bash
+cp .env.example .env
+# Edit .env with production SECRET_KEY
+docker-compose up --build
+```
+
+App runs on port 80 via Nginx reverse proxy.
 
 ---
 
-## Deployment
+## Environment Variables
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for full production deployment instructions using Docker, Nginx, and SSL.
+| Variable | Default | Description |
+|---|---|---|
+| `SECRET_KEY` | (hardcoded dev key) | Flask session secret — **change in production** |
+| `DATABASE_URL` | `sqlite:///instance/emergix.db` | Database connection string |
+| `FLASK_ENV` | `development` | `development` or `production` |
 
 ---
 
-## License
+## Acknowledgements
 
-MIT License
+Built for Smart India Hackathon / college project — EMERGIX addresses the real-world problem of bed availability information failures during the COVID-19 pandemic in India, backed by research showing 50–80% reduction in admission delays via digital bed tracking platforms.

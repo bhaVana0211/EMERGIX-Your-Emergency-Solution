@@ -1,0 +1,75 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Bed Management — EMERGIX Admin{% endblock %}
+{% block topbar_title %}Bed Management{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+  <div>
+    <h2 class="page-title">Bed Management</h2>
+    <p class="page-subtitle">{{ hospital.name }} — Live bed count controls</p>
+  </div>
+  <button class="btn btn-primary" onclick="saveAllBeds({{ hospital.id }})">
+    <i class="fa-solid fa-floppy-disk"></i> Save All Changes
+  </button>
+</div>
+
+<div class="connection-banner" id="connection-banner"></div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem;">
+  {% for b in inventory %}
+  {% set pct = b.occupancy_pct() %}
+  <div class="bed-manage-card animate-fade" style="animation-delay:{{ loop.index0 * 0.05 }}s">
+    <div class="bed-type-header">
+      <div class="bed-type-icon-wrap">
+        <i class="fa-solid {{ bed_type_icons.get(b.bed_type, 'fa-bed') }}"></i>
+      </div>
+      <div>
+        <div style="font-family:var(--font-display);font-weight:700;color:var(--text)">{{ bed_type_labels.get(b.bed_type, b.bed_type.title()) }}</div>
+        <div style="font-size:.75rem;color:var(--slate)">{{ pct }}% occupied</div>
+      </div>
+      <span id="save-{{ b.bed_type }}" style="display:none;font-size:.78rem;margin-left:auto"></span>
+    </div>
+
+    <!-- Available beds control -->
+    <div style="margin-bottom:.75rem;">
+      <div style="font-size:.78rem;font-weight:600;color:var(--slate);margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.04em">Available Beds</div>
+      <div class="bed-count-control">
+        <button class="count-btn decrement"
+                onclick="changeBed({{ hospital.id }}, '{{ b.bed_type }}', -1)"
+                title="Decrease available">−</button>
+        <div class="count-value" id="avail-{{ b.bed_type }}">{{ b.available_beds }}</div>
+        <button class="count-btn increment"
+                onclick="changeBed({{ hospital.id }}, '{{ b.bed_type }}', 1)"
+                title="Increase available">+</button>
+        <div style="font-size:.8rem;color:var(--slate);margin-left:.25rem">of
+          <span id="total-{{ b.bed_type }}">{{ b.total_beds }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Occupancy bar -->
+    <div class="occ-bar-wrap">
+      <div class="occ-bar">
+        <div class="occ-bar-fill {% if pct >= 90 %}progress-critical{% elif pct >= 70 %}progress-warning{% else %}progress-ok{% endif %}"
+             id="bar-{{ b.bed_type }}" style="width:{{ pct }}%"></div>
+      </div>
+      <div class="occ-label">
+        <span>{{ b.total_beds - b.available_beds }} occupied</span>
+        <span id="pct-{{ b.bed_type }}">{{ pct }}% occupied</span>
+      </div>
+    </div>
+
+    <!-- Last updated -->
+    <div style="font-size:.75rem;color:var(--slate-light);margin-top:.25rem;border-top:1px solid rgba(10,147,150,.08);padding-top:.5rem">
+      <i class="fa-solid fa-clock"></i>
+      Last updated: {{ b.last_updated.strftime('%d %b, %I:%M %p') if b.last_updated else 'Not yet updated' }}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div style="margin-top:1.5rem;padding:1rem 1.25rem;background:rgba(233,196,106,.08);border:1px solid rgba(233,196,106,.2);border-radius:12px;font-size:.85rem;color:#92400E;display:flex;gap:.6rem;align-items:flex-start;">
+  <i class="fa-solid fa-circle-info" style="flex-shrink:0;margin-top:2px"></i>
+  <span>Changes auto-save 1.2 seconds after you stop clicking. The "Save All" button immediately saves every bed type. All changes are broadcast live to patients searching nearby hospitals.</span>
+</div>
+{% endblock %}

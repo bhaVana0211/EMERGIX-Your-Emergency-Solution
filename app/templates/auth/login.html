@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Patient Login — EMERGIX{% endblock %}
+{% block content %}
+<div style="min-height:calc(100vh - 68px);display:flex;align-items:center;justify-content:center;padding:2rem 1.5rem;">
+  <div style="width:100%;max-width:420px;">
+
+    <div class="glass" style="padding:2.5rem 2rem;">
+      <div style="text-align:center;margin-bottom:2rem;">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;box-shadow:0 8px 24px rgba(10,147,150,.3);">
+          <i class="fa-solid fa-user-injured" style="font-size:1.6rem;color:white"></i>
+        </div>
+        <h2 style="color:var(--teal-dark);margin-bottom:.3rem">Patient Login</h2>
+        <p style="font-size:.9rem">Access hospital bed availability near you</p>
+      </div>
+
+      <form method="POST" action="{{ url_for('auth.login') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-group">
+          <label class="form-label" for="identifier"><i class="fa-solid fa-at"></i> Email, Phone or Username</label>
+          <input type="text" class="form-control" id="identifier" name="identifier"
+                 placeholder="Enter your email or phone" required autofocus>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password"><i class="fa-solid fa-lock"></i> Password</label>
+          <div style="position:relative">
+            <input type="password" class="form-control" id="password" name="password"
+                   placeholder="Your password" required style="padding-right:2.8rem">
+            <button type="button" onclick="togglePwd('password')"
+                    style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--slate);font-size:1rem">
+              <i class="fa-solid fa-eye" id="pwd-icon"></i>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:.5rem">
+          <i class="fa-solid fa-right-to-bracket"></i> Sign In
+        </button>
+      </form>
+
+      <div style="text-align:center;margin-top:1.5rem;font-size:.88rem;color:var(--slate)">
+        Don't have an account?
+        <a href="{{ url_for('auth.register') }}" style="font-weight:600">Register free →</a>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:1.25rem;">
+      <a href="{{ url_for('auth.hospital_login') }}"
+         style="display:inline-flex;align-items:center;gap:.5rem;color:var(--slate);font-size:.88rem;padding:.6rem 1.2rem;background:rgba(255,255,255,.7);border-radius:10px;border:1px solid rgba(10,147,150,.15);">
+        <i class="fa-solid fa-hospital" style="color:var(--teal)"></i>
+        Hospital Staff? Login here →
+      </a>
+    </div>
+  </div>
+</div>
+<script>
+function togglePwd(id){ const f=document.getElementById(id); f.type=f.type==='password'?'text':'password';
+  document.getElementById('pwd-icon').className='fa-solid fa-eye'+(f.type==='text'?'-slash':''); }
+</script>
+{% endblock %}

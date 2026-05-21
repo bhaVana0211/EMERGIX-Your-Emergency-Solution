@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.9'
 
 services:
   web:
@@ -6,64 +6,25 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - FLASK_ENV=production
-      - DATABASE_URL=postgresql://emergix:emergix@db:5432/emergix_db
-      - REDIS_URL=redis://redis:6379/0
-      - SOCKETIO_MESSAGE_QUEUE=redis://redis:6379/0
-      - SECRET_KEY=${SECRET_KEY:-emergix-dev-secret-key}
-    depends_on:
-      - db
-      - redis
-    networks:
-      - emergix-net
-
-  simulator:
-    build: .
-    command: python mock_bed_simulator.py
-    environment:
-      - FLASK_ENV=production
-      - DATABASE_URL=postgresql://emergix:emergix@db:5432/emergix_db
-      - REDIS_URL=redis://redis:6379/0
-      - SOCKETIO_MESSAGE_QUEUE=redis://redis:6379/0
-    depends_on:
-      - db
-      - redis
-    networks:
-      - emergix-net
-
-  db:
-    image: postgis/postgis:16-3.4
-    environment:
-      - POSTGRES_USER=emergix
-      - POSTGRES_PASSWORD=emergix
-      - POSTGRES_DB=emergix_db
-    ports:
-      - "5432:5432"
+      FLASK_ENV: production
+      SECRET_KEY: ${SECRET_KEY:-changeme-in-production}
+      DATABASE_URL: ${DATABASE_URL:-sqlite:///instance/emergix.db}
     volumes:
-      - pgdata:/var/lib/postgresql/data
-    networks:
-      - emergix-net
+      - ./instance:/app/instance
+    depends_on:
+      - redis
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    networks:
-      - emergix-net
+    restart: unless-stopped
 
   nginx:
     image: nginx:alpine
     ports:
       - "80:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - web
-    networks:
-      - emergix-net
-
-networks:
-  emergix-net:
-
-volumes:
-  pgdata:
+    restart: unless-stopped

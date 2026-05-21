@@ -1,0 +1,9 @@
+import os
+from app import create_app
+from app.extensions import socketio
+
+app = create_app(os.environ.get('FLASK_ENV', 'development'))
+
+if __name__ == '__main__':
+    socketio.run(app, debug=True, host='0.0.0.0', port=5000,
+                 allow_unsafe_werkzeug=True)

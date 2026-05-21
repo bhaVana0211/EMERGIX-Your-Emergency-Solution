@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Server Error — EMERGIX{% endblock %}
+{% block content %}
+<div style="min-height:calc(100vh - 68px);display:flex;align-items:center;justify-content:center;padding:2rem;">
+  <div style="text-align:center;max-width:480px;">
+    <div style="font-size:6rem;font-family:var(--font-display);font-weight:800;color:rgba(230,57,70,.3);line-height:1;margin-bottom:1rem">500</div>
+    <h2 style="color:var(--teal-dark);margin-bottom:.75rem">Server Error</h2>
+    <p style="color:var(--slate);margin-bottom:2rem;line-height:1.7">Something went wrong on our end. Please try again shortly. If the problem persists, the hospital data is still accessible by phone.</p>
+    <a href="{{ url_for('main.landing') }}" class="btn btn-primary btn-lg">
+      <i class="fa-solid fa-rotate-right"></i> Try Again
+    </a>
+  </div>
+</div>
+{% endblock %}

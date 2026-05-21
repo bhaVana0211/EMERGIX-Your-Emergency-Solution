@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Create Account — EMERGIX{% endblock %}
+{% block content %}
+<div style="min-height:calc(100vh - 68px);display:flex;align-items:center;justify-content:center;padding:2rem 1.5rem;">
+  <div style="width:100%;max-width:440px;">
+    <div class="glass" style="padding:2.5rem 2rem;">
+      <div style="text-align:center;margin-bottom:2rem;">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;box-shadow:0 8px 24px rgba(10,147,150,.3);">
+          <i class="fa-solid fa-user-plus" style="font-size:1.5rem;color:white"></i>
+        </div>
+        <h2 style="color:var(--teal-dark);margin-bottom:.3rem">Create Account</h2>
+        <p style="font-size:.9rem">Join EMERGIX — free for patients</p>
+      </div>
+
+      <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-group">
+          <label class="form-label"><i class="fa-solid fa-user"></i> Full Name</label>
+          <input type="text" class="form-control" name="full_name"
+                 value="{{ form_data.get('full_name','') }}"
+                 placeholder="Your full name" required autofocus>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fa-solid fa-envelope"></i> Email Address</label>
+          <input type="email" class="form-control" name="email"
+                 value="{{ form_data.get('email','') }}"
+                 placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fa-solid fa-phone"></i> Mobile Number</label>
+          <input type="tel" class="form-control" name="phone"
+                 value="{{ form_data.get('phone','') }}"
+                 placeholder="10-digit mobile number" maxlength="10" required>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-lock"></i> Password</label>
+            <input type="password" class="form-control" name="password"
+                   id="reg-password" placeholder="Min 8 chars" required minlength="8">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-lock"></i> Confirm</label>
+            <input type="password" class="form-control" name="confirm_password"
+                   id="reg-confirm" placeholder="Repeat password" required>
+          </div>
+        </div>
+        <div id="pwd-match-hint" style="font-size:.8rem;margin-top:-.5rem;margin-bottom:.75rem;display:none"></div>
+
+        <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:.25rem">
+          <i class="fa-solid fa-rocket"></i> Create My Account
+        </button>
+      </form>
+
+      <div style="text-align:center;margin-top:1.5rem;font-size:.88rem;color:var(--slate)">
+        Already have an account?
+        <a href="{{ url_for('auth.login') }}" style="font-weight:600">Sign in →</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const p = document.getElementById('reg-password');
+const c = document.getElementById('reg-confirm');
+const hint = document.getElementById('pwd-match-hint');
+function checkMatch(){
+  if(!c.value) return hint.style.display='none';
+  const ok = p.value === c.value;
+  hint.style.display = 'block';
+  hint.textContent   = ok ? '✓ Passwords match' : '✗ Passwords do not match';
+  hint.style.color   = ok ? 'var(--success)' : 'var(--danger)';
+}
+p.addEventListener('input', checkMatch);
+c.addEventListener('input', checkMatch);
+</script>
+{% endblock %}

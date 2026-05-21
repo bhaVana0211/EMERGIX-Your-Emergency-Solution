@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block title %}EMERGIX — Find Hospital Beds Near You, Right Now{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section style="min-height:calc(100vh - 68px);display:flex;flex-direction:column;justify-content:center;padding:3rem 1.5rem 2rem;max-width:1200px;margin:0 auto;">
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;">
+    <!-- Left: Copy -->
+    <div class="animate-fade">
+      <div style="display:inline-flex;align-items:center;gap:.6rem;background:rgba(10,147,150,0.1);border:1px solid rgba(10,147,150,0.2);border-radius:99px;padding:.35rem 1rem;margin-bottom:1.5rem;">
+        <span style="width:8px;height:8px;background:var(--teal);border-radius:50%;animation:blink 1.5s infinite"></span>
+        <span style="font-size:.82rem;font-weight:600;color:var(--teal)">Live Bed Availability — Pan India</span>
+      </div>
+
+      <h1 style="color:var(--teal-dark);margin-bottom:1rem;font-size:clamp(2.2rem,5vw,3.4rem);">
+        Find a hospital bed.<br>
+        <span style="color:var(--teal)">Right now.</span>
+      </h1>
+      <p style="font-size:1.1rem;color:var(--text-soft);margin-bottom:2rem;max-width:480px;line-height:1.7;">
+        EMERGIX shows real-time bed availability across {{ total_hospitals }}+ hospitals in Bhubaneswar.
+        Auto-locates nearby hospitals, shows available beds by type, and lets you alert a hospital before you arrive.
+      </p>
+
+      <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:2.5rem;">
+        {% if session.get('user_id') and session.get('role') != 'hospital_admin' %}
+          <a href="{{ url_for('hospitals.discovery') }}" class="btn btn-primary btn-lg">
+            <i class="fa-solid fa-magnifying-glass-location"></i> Find Nearby Beds
+          </a>
+        {% elif session.get('role') == 'hospital_admin' %}
+          <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary btn-lg">
+            <i class="fa-solid fa-gauge-high"></i> Go to Dashboard
+          </a>
+        {% else %}
+          <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+            <i class="fa-solid fa-magnifying-glass-location"></i> Find Nearby Beds
+          </a>
+          <a href="{{ url_for('auth.hospital_login') }}" class="btn btn-outline btn-lg">
+            <i class="fa-solid fa-hospital"></i> Hospital Staff Login
+          </a>
+        {% endif %}
+      </div>
+
+      <!-- Trust stats -->
+      <div style="display:flex;flex-wrap:wrap;gap:2rem;">
+        <div>
+          <div style="font-family:var(--font-display);font-size:1.8rem;font-weight:800;color:var(--teal-dark)">{{ total_hospitals }}+</div>
+          <div style="font-size:.83rem;color:var(--slate)">Hospitals Tracked</div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:1.8rem;font-weight:800;color:var(--teal-dark)">{{ total_available }}+</div>
+          <div style="font-size:.83rem;color:var(--slate)">Beds Available Now</div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:1.8rem;font-weight:800;color:var(--teal-dark)">21</div>
+          <div style="font-size:.83rem;color:var(--slate)">Cities Covered</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Illustration card -->
+    <div class="animate-fade anim-delay-2" style="position:relative;">
+      <div class="glass" style="padding:2rem;text-align:center;">
+        <div style="font-size:5rem;margin-bottom:1rem;line-height:1">🏥</div>
+        <div style="font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--teal-dark);margin-bottom:1.5rem">Live Bed Status</div>
+        {% set icons = [('fa-bed','General','bg:rgba(10,147,150,.1);color:var(--teal)'),('fa-heart-pulse','ICU','bg:rgba(230,57,70,.1);color:var(--danger)'),('fa-lungs','Oxygen','bg:rgba(42,157,143,.1);color:var(--success)'),('fa-wind','Ventilator','bg:rgba(233,196,106,.15);color:#B7791F')] %}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;text-align:left;">
+          {% for icon, label, style in icons %}
+          <div style="background:rgba(255,255,255,.6);border:1px solid rgba(10,147,150,.1);border-radius:12px;padding:.9rem;display:flex;align-items:center;gap:.75rem;">
+            <div style="width:38px;height:38px;border-radius:10px;{{ style }};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <i class="fa-solid {{ icon }}"></i>
+            </div>
+            <div>
+              <div style="font-size:.75rem;color:var(--slate);font-weight:600">{{ label }}</div>
+              <div style="font-family:var(--font-display);font-weight:700;color:var(--text)">Available</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <div style="margin-top:1.25rem;padding:.75rem;background:rgba(42,157,143,.08);border-radius:10px;border:1px solid rgba(42,157,143,.15);">
+          <span style="font-size:.83rem;color:var(--success);font-weight:600">
+            <i class="fa-solid fa-circle-check"></i> Data updates every 30–60 seconds
+          </span>
+        </div>
+      </div>
+      <!-- Decorative blob -->
+      <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(10,147,150,.12),transparent 70%);border-radius:50%;z-index:-1;pointer-events:none"></div>
+    </div>
+  </div>
+
+  <!-- Feature highlights -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-top:4rem;" class="animate-fade anim-delay-3">
+    {% set features = [
+      ('fa-location-crosshairs','Auto-Location','Automatically detects your GPS location and finds all hospitals within your chosen radius — no manual searching.'),
+      ('fa-map-location-dot','Turn-by-Turn Nav','One tap opens Google Maps with full driving directions from your exact location to the hospital.'),
+      ('fa-bell','Pre-Arrival Alert','Alert the hospital before you leave home. Staff prepare the right equipment so you are admitted faster.')
+    ] %}
+    {% for icon, title, desc in features %}
+    <div class="glass-flat" style="padding:1.5rem;">
+      <div style="width:48px;height:48px;background:rgba(10,147,150,.1);border-radius:14px;display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:1.25rem;margin-bottom:1rem;">
+        <i class="fa-solid {{ icon }}"></i>
+      </div>
+      <h4 style="font-family:var(--font-display);margin-bottom:.4rem;color:var(--teal-dark)">{{ title }}</h4>
+      <p style="font-size:.88rem;line-height:1.6">{{ desc }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<style>
+@media(max-width:768px){
+  section > div:first-child { grid-template-columns:1fr!important; gap:2rem!important; }
+  section > div:last-child  { grid-template-columns:1fr!important; }
+}
+</style>
+{% endblock %}

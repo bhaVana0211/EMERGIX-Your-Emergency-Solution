@@ -1,9 +1,7 @@
 """
-EMERGIX — Mock Bed Simulator
-Randomly updates bed availability to simulate real-world bed turnover.
-Runs as a background thread in development or as a standalone script.
+mock_bed_simulator.py — Simulates live bed count changes for demo purposes.
+Run as a separate process: python mock_bed_simulator.py
 """
-
 import os
 import sys
 import time
@@ -12,70 +10,59 @@ import logging
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('emergix.simulator')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s [SIMULATOR] %(message)s')
+logger = logging.getLogger(__name__)
 
 
-def run_simulator(app=None, socketio=None):
-    """Run the bed simulator. Updates random beds every 30-120 seconds."""
-    if app is None:
-        from Emergix import create_app, socketio as sio
-        app = create_app()
-        socketio = sio
+def run_simulator(interval_min=20, interval_max=60):
+    from app import create_app
+    from app.extensions import db, socketio
+    from app.models import BedInventory
 
-    logger.info("Mock bed simulator started")
+    app = create_app('development')
+
+    logger.info(f"Bed simulator started (interval: {interval_min}–{interval_max}s)")
 
     with app.app_context():
-        from Emergix.models import db, BedInventory, Hospital
-        from datetime import datetime, timezone
-
         while True:
+            sleep_time = random.randint(interval_min, interval_max)
+            time.sleep(sleep_time)
+
             try:
-                # Random delay between 30-120 seconds
-                delay = random.randint(30, 120)
-                time.sleep(delay)
-
-                # Pick a random hospital
-                hospitals = Hospital.query.filter_by(is_active=True).all()
-                if not hospitals:
+                # Pick 2–4 random bed inventory rows and adjust them
+                all_beds = BedInventory.query.all()
+                if not all_beds:
                     continue
+                selected = random.sample(all_beds, min(random.randint(2, 4), len(all_beds)))
 
-                hospital = random.choice(hospitals)
-                inventory_items = BedInventory.query.filter_by(hospital_id=hospital.id).all()
+                for bed in selected:
+                    if bed.total_beds == 0:
+                        continue
+                    # Randomly increment or decrement by 1–3
+                    delta = random.choice([-3, -2, -1, -1, 1, 1, 2, 3])
+                    new_available = bed.available_beds + delta
+                    new_available = max(0, min(bed.total_beds, new_available))
+                    bed.available_beds = new_available
 
-                if not inventory_items:
-                    continue
+                db.session.commit()
 
-                # Pick a random bed type
-                item = random.choice(inventory_items)
-
-                # Randomly increment or decrement available beds
-                change = random.choice([-1, -1, 1, 1, 1])  # Slight bias toward freeing beds
-                new_available = item.available_beds + change
-
-                # Clamp to valid range
-                new_available = max(0, min(new_available, item.total_beds))
-
-                if new_available != item.available_beds:
-                    item.available_beds = new_available
-                    item.last_updated = datetime.now(timezone.utc)
-                    db.session.commit()
-
-                    logger.info(
-                        f"  📊 {hospital.name} | {item.bed_type}: "
-                        f"{item.available_beds}/{item.total_beds} available"
-                    )
-
-                    # Emit WebSocket event
-                    if socketio:
+                # Emit bed_updated events via socketio if running
+                try:
+                    for bed in selected:
                         socketio.emit('bed_updated', {
-                            'hospital_id': hospital.id,
-                            'bed_type': item.bed_type,
-                            'available_beds': item.available_beds,
-                            'total_beds': item.total_beds,
-                            'occupancy_pct': item.occupancy_pct,
-                            'updated_at': item.last_updated.isoformat()
-                        })
+                            'hospital_id': bed.hospital_id,
+                            'bed_type': bed.bed_type,
+                            'available_beds': bed.available_beds,
+                            'total_beds': bed.total_beds,
+                            'occupancy_pct': bed.occupancy_pct(),
+                        }, namespace='/')
+                except Exception:
+                    pass  # Socketio not running standalone
+
+                for bed in selected:
+                    logger.info(f"  Hospital {bed.hospital_id} | {bed.bed_type}: "
+                                f"{bed.available_beds}/{bed.total_beds} available")
 
             except Exception as e:
                 logger.error(f"Simulator error: {e}")
@@ -83,8 +70,7 @@ def run_simulator(app=None, socketio=None):
                     db.session.rollback()
                 except Exception:
                     pass
-                time.sleep(10)
 
 
 if __name__ == '__main__':
-    run_simulator()
+    run_simulator(interval_min=15, interval_max=45)

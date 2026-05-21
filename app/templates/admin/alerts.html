@@ -1,0 +1,128 @@
+{% extends 'admin/base_admin.html' %}
+{% set pending_count = counts.pending %}
+{% block title %}Incoming Alerts — EMERGIX Admin{% endblock %}
+{% block topbar_title %}Incoming Patient Alerts{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+  <div>
+    <h2 class="page-title">Patient Alerts</h2>
+    <p class="page-subtitle">Real-time incoming pre-arrival notifications — {{ hospital.name }}</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:.5rem;font-size:.83rem;color:var(--slate);">
+    <span style="width:8px;height:8px;background:var(--teal);border-radius:50%;animation:blink 1.5s infinite;display:inline-block"></span>
+    Connected — listening for new alerts
+  </div>
+</div>
+
+<div class="connection-banner" id="connection-banner"></div>
+
+<!-- Status Tabs -->
+<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem;">
+  {% for status, label in [('all','All'),('pending','Pending'),('acknowledged','Acknowledged'),('admitted','Admitted'),('cancelled','Cancelled')] %}
+  <a href="{{ url_for('admin.alerts', status=status) }}"
+     class="chip {% if status_filter == status %}active{% endif %}"
+     style="text-decoration:none">
+    {{ label }}
+    <span style="background:rgba(0,0,0,.1);border-radius:99px;padding:0 .4rem;font-size:.72rem;margin-left:.2rem">{{ counts[status] }}</span>
+  </a>
+  {% endfor %}
+</div>
+
+<!-- Alerts List -->
+<div id="alerts-container">
+  {% if alerts %}
+    {% for alert in alerts %}
+    <div class="alert-card" id="alert-card-{{ alert.id }}">
+      <div class="alert-header">
+        <div>
+          <div class="alert-patient-name">{{ alert.patient_name }}</div>
+          <div class="alert-meta">
+            <span class="badge badge-{{ alert.status }}">
+              <span class="status-dot {{ alert.status }}"></span>
+              {{ alert.status.title() }}
+            </span>
+            <code class="alert-ref">{{ alert.booking_ref }}</code>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <span class="badge badge-private" style="font-size:.82rem">
+            <i class="fa-solid {{ bed_type_icons.get(alert.bed_type_needed,'fa-bed') }}"></i>
+            {{ bed_type_labels.get(alert.bed_type_needed, alert.bed_type_needed.title()) }}
+          </span>
+        </div>
+      </div>
+
+      <div class="alert-detail-row">
+        {% if alert.patient_age %}
+        <div class="alert-detail">
+          <i class="fa-solid fa-user"></i>
+          Age {{ alert.patient_age }}{% if alert.patient_gender %}, {{ alert.patient_gender.title() }}{% endif %}
+        </div>
+        {% endif %}
+        <div class="alert-detail">
+          <i class="fa-solid fa-phone"></i>
+          <a href="tel:{{ alert.contact_phone }}" style="color:var(--teal);font-weight:600">{{ alert.contact_phone }}</a>
+        </div>
+        <div class="alert-detail">
+          <i class="fa-solid fa-clock"></i>
+          {{ alert.created_at.strftime('%d %b %Y, %I:%M %p') if alert.created_at else '—' }}
+        </div>
+        {% if alert.est_arrival_min %}
+        <div class="alert-detail">
+          <i class="fa-solid fa-hourglass-half"></i>
+          Arrival in ~{{ alert.est_arrival_min }} min
+        </div>
+        {% endif %}
+        {% if alert.distance_km %}
+        <div class="alert-detail">
+          <i class="fa-solid fa-route"></i>
+          {{ alert.distance_km }} km away
+        </div>
+        {% endif %}
+      </div>
+
+      {% if alert.notes %}
+      <div class="alert-notes">
+        <i class="fa-solid fa-note-sticky"></i> {{ alert.notes }}
+      </div>
+      {% endif %}
+
+      {% if alert.acknowledged_at %}
+      <div style="font-size:.78rem;color:var(--success);margin-top:.4rem">
+        <i class="fa-solid fa-check-circle"></i>
+        Acknowledged at {{ alert.acknowledged_at.strftime('%I:%M %p') if alert.acknowledged_at else '' }}
+        {% if alert.acknowledger %} by {{ alert.acknowledger.full_name }}{% endif %}
+      </div>
+      {% endif %}
+
+      <div class="alert-actions">
+        {% if alert.status == 'pending' %}
+        <button class="btn btn-primary btn-sm" onclick="updateAlertStatus({{ alert.id }},'acknowledged',this)">
+          <i class="fa-solid fa-check"></i> Acknowledge
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="updateAlertStatus({{ alert.id }},'admitted',this)">
+          <i class="fa-solid fa-bed-pulse"></i> Mark Admitted
+        </button>
+        <button class="btn btn-sm" style="background:rgba(100,116,139,.1);color:var(--slate)"
+                onclick="updateAlertStatus({{ alert.id }},'cancelled',this)">
+          <i class="fa-solid fa-xmark"></i> Cancel
+        </button>
+        {% elif alert.status == 'acknowledged' %}
+        <button class="btn btn-ghost btn-sm" onclick="updateAlertStatus({{ alert.id }},'admitted',this)">
+          <i class="fa-solid fa-bed-pulse"></i> Mark Admitted
+        </button>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+
+  {% else %}
+  <div class="empty-state glass" id="empty-alerts">
+    <div class="empty-state-icon"><i class="fa-solid fa-bell-slash"></i></div>
+    <h3>No alerts {% if status_filter != 'all' %}with status "{{ status_filter }}"{% endif %}</h3>
+    <p>New patient alerts will appear here in real-time.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
