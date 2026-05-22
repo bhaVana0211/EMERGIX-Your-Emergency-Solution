@@ -17,9 +17,12 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=True)
     phone = db.Column(db.String(15), unique=True, nullable=True)
-    password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.String(20), default='patient')          # 'patient' or 'hospital_admin'
-    is_management = db.Column(db.Boolean, default=False)         # backward compat
+    password_hash = db.Column(db.String(256), nullable=True)   # nullable for Google-only accounts
+    google_id = db.Column(db.String(128), unique=True, nullable=True)
+    avatar_url = db.Column(db.String(300), nullable=True)      # Google profile picture
+    auth_provider = db.Column(db.String(20), default='local')  # 'local' or 'google'
+    role = db.Column(db.String(20), default='patient')
+    is_management = db.Column(db.Boolean, default=False)
     hospital_id = db.Column(db.Integer, db.ForeignKey('hospitals.id'), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=utcnow)
@@ -32,6 +35,8 @@ class User(db.Model):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
+        if not self.password_hash:
+            return False   # Google-only account — no password set
         return check_password_hash(self.password_hash, password)
 
     @property

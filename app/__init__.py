@@ -2,7 +2,7 @@ import os
 import logging
 from flask import Flask, render_template
 from app.config import config
-from app.extensions import db, socketio, csrf, limiter
+from app.extensions import db, socketio, csrf, limiter, oauth
 
 logging.basicConfig(level=logging.INFO)
 
@@ -28,6 +28,16 @@ def create_app(config_name=None):
                       engineio_logger=False)
     csrf.init_app(app)
     limiter.init_app(app)
+    oauth.init_app(app)
+
+    # Register Google OAuth provider
+    oauth.register(
+        name='google',
+        client_id=app.config.get('GOOGLE_CLIENT_ID'),
+        client_secret=app.config.get('GOOGLE_CLIENT_SECRET'),
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+        client_kwargs={'scope': 'openid email profile'},
+    )
 
     # Register blueprints
     from app.blueprints.main import main_bp
@@ -59,9 +69,26 @@ def create_app(config_name=None):
     def not_found(e):
         return render_template('errors/404.html'), 404
 
+    @app.errorhandler(429)
+    def rate_limited(e):
+        from flask import request, jsonify
+        if request.path.startswith('/api/'):
+            return jsonify({'success': False, 'error': 'Too many requests. Please slow down.'}), 429
+        return render_template('errors/429.html'), 429
+
     @app.errorhandler(500)
     def server_error(e):
+        from app.extensions import db as _db
+        _db.session.rollback()     # always rollback on 500 to free the connection
         return render_template('errors/500.html'), 500
+
+    # Ensure DB sessions are cleaned up after every request (prevents connection leaks under load)
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        from app.extensions import db as _db
+        if exception:
+            _db.session.rollback()
+        _db.session.remove()
 
     # Template context processors
     @app.context_processor

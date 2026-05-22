@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Too Many Requests — EMERGIX{% endblock %}
+{% block content %}
+<div style="min-height:calc(100vh - 68px);display:flex;align-items:center;justify-content:center;padding:2rem;">
+  <div style="text-align:center;max-width:480px;">
+    <div style="font-size:6rem;font-family:var(--font-display);font-weight:800;color:rgba(233,196,106,.6);line-height:1;margin-bottom:1rem">429</div>
+    <h2 style="color:var(--teal-dark);margin-bottom:.75rem">Too Many Requests</h2>
+    <p style="color:var(--slate);margin-bottom:2rem;line-height:1.7">
+      You're moving too fast! Please wait a moment and try again.
+      If this is an emergency, please call <strong>112</strong> directly.
+    </p>
+    <a href="{{ url_for('main.landing') }}" class="btn btn-primary btn-lg">
+      <i class="fa-solid fa-rotate-right"></i> Try Again
+    </a>
+  </div>
+</div>
+{% endblock %}
