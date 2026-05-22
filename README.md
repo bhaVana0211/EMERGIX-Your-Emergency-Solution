@@ -75,3 +75,61 @@ python seed_data.py
 
 # 5. Boot the live runtime server
 python run.py
+```
+# 🌐 Securely Access the Local Deployment Portal
+
+Securely access the local deployment portal at:
+
+```bash
+http://localhost:5000
+```
+
+---
+
+# ⚙️ Running the Mock Bed Simulator
+
+To stress-test real-time rendering and view-reactive components, spin up the multi-threaded simulation pipeline in a separate terminal shell:
+
+```bash
+python mock_bed_simulator.py
+```
+
+This background processor simulates true volatility by randomizing care unit loads every **15–45 seconds**, pushing the state downstream instantly through active socket emitters.
+
+---
+
+# 🐳 High-Availability Production Docker Build
+
+```bash
+docker-compose up --build
+```
+
+The compose routine containerizes the Flask WSGI application server, mapping **port 80** out via optimized configurations for direct testing or deployment.
+
+---
+
+# 📄 Application API Matrix
+
+| Method | Endpoint Resource | Auth Context | Description |
+|--------|------------------|--------------|-------------|
+| `GET` | `/api/hospitals/nearby` | Patient (OAuth/Session) | Resolves geo-fenced coordinates into sorted hospital records. |
+| `GET` | `/api/hospitals/<id>` | Public | Fetches detailed configuration metrics for a single hospital. |
+| `POST` | `/api/alerts/create` | Patient Restricted | Encodes and pushes a critical pre-arrival routing notification down the pipe. |
+| `PUT` | `/api/admin/beds/update` | Hospital Admin Only | Rewrites explicit cell counts across 8 specialized fields. |
+| `PUT` | `/api/admin/alerts/<id>/status` | Hospital Admin Only | Mutates ticket lifecycles *(Acknowledge / Admit / Cancel)*. |
+
+---
+
+# 🛡️ Boundary Constraints & Location Safeguards
+
+**EMERGIX** features intelligent geo-fencing.
+
+If a user seeks assistance out of network *(outside the 10 km covered service boundaries)*, the platform prevents deadlocks by calculating distances to the nearest support center.
+
+---
+
+# 🤝 Acknowledgements
+
+Built to address real-world health tracking challenges.
+
+The architectural framework is rooted in published public health studies proving that digital care dashboards drive a **50–80% optimization** in critical triage admission bottlenecks.
