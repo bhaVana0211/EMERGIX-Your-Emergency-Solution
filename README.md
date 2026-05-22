@@ -10,10 +10,10 @@
 ---
 
 ## 📈 Proven System Impact
-* [cite_start]**⚡ 50% Reduction in Intake Delays:** Auto-allocated MySQL assignment logic streamlines patient registration.
-* [cite_start]**📦 20% Inventory Optimization:** Real-time monitoring minimizes critical medical supply shortages[cite: 76].
+* **⚡ 50% Reduction in Intake Delays:** Auto-allocated MySQL assignment logic streamlines patient registration workflows.
+* **📦 20% Inventory Optimization:** Real-time resource monitoring minimizes critical medical supply shortages.
 * **⏱️ Sub-Minute Syncing:** WebSockets broadcast bed availability updates across 8 types of critical care units instantly.
-* [cite_start]**🛡️ 99.9% High Availability:** Architected to handle high-stakes concurrency failures during emergency surges[cite: 77].
+* **🛡️ 99.9% High Availability:** Architected to handle high-stakes concurrency failures during emergency surges.
 
 ---
 
@@ -42,17 +42,17 @@ Patients trigger instant alerts that seamlessly transition onto the hospital's i
 
 ## 🚀 Architectural Deep-Dive
 
-* [cite_start]**Backend Matrix:** Built using Python 3.11 and Flask 3.x engineered with an asynchronous application factory architecture[cite: 73, 80].
+* **Backend Matrix:** Built using Python 3.11 and Flask 3.x engineered with an asynchronous application factory architecture.
 * **Secure Authentication Engine:** Implements a multi-role authentication tier using standard Flask session workflows alongside **Google OAuth 2.0** for secure, passwordless one-tap patient verification.
 * **Persistent Live Data Pipeline:** Utilizes `Flask-SocketIO` to form long-lived full-duplex channels. When admins adjust counts, changes sync instantly across all clients without a webpage refresh.
-* [cite_start]**Database & Relational Model:** Optimized `SQLAlchemy 2.x` schemas running pre-indexed queries across `MySQL`/`PostgreSQL` backends to eliminate analytical lockouts under load[cite: 73, 75, 81].
+* **Database & Relational Model:** Optimized `SQLAlchemy 2.x` schemas running pre-indexed queries across `MySQL`/`PostgreSQL` backends to eliminate analytical lockouts under load.
 
 ---
 
 ## 🔧 Installation & Fast Local Deployment
 
 ### Prerequisites
-* [cite_start]Python 3.11+ or Docker Engine Installed [cite: 73]
+* Python 3.11+ or Docker Engine Installed
 * Google Cloud Console Developer Credentials (for Google Sign-In)
 
 ### Step-by-Step Setup
