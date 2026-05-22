@@ -22,7 +22,7 @@
 ### 🌐 Patient Discovery & Auto-Location Hub
 The intuitive, glassmorphic UI uses browser GPS location and the **Haversine Formula** to automatically map nearby hospitals within a 10 km radius.
 <p align="center">
-  <img src="Screenshot 2026-05-21 111215.jpg" alt="EMERGIX Patient Discovery Interface" width="100%" />
+  <img src="Screenshot 2026-05-21 111215.png" alt="EMERGIX Patient Discovery Interface" width="100%" />
 </p>
 
 ### 📊 Real-Time Hospital Emergency Dashboards
