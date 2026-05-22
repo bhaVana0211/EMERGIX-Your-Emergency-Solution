@@ -3,14 +3,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+BASE_DIR     = os.path.abspath(os.path.dirname(__file__))
+INSTANCE_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'instance'))
+
+# Create the instance folder now — SQLite cannot create missing directories itself
+os.makedirs(INSTANCE_DIR, exist_ok=True)
+
+_DEFAULT_DB = 'sqlite:///' + os.path.join(INSTANCE_DIR, 'emergix.db').replace('\\', '/')
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'emergix-dev-secret-change-in-production-2024')
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL',
-        f'sqlite:///{os.path.join(BASE_DIR, "../instance/emergix.db")}'
-    )
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', _DEFAULT_DB)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # Connection pool: handles burst traffic without connection exhaustion
     SQLALCHEMY_ENGINE_OPTIONS = {

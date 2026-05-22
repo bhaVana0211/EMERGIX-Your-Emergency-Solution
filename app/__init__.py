@@ -16,8 +16,7 @@ def create_app(config_name=None):
                 static_folder='static')
     app.config.from_object(config.get(config_name, config['default']))
 
-    # Ensure instance folder exists
-    os.makedirs(os.path.join(app.root_path, '..', 'instance'), exist_ok=True)
+    # instance folder is already guaranteed by config.py at import time
 
     # Init extensions
     db.init_app(app)
