@@ -28,7 +28,9 @@ app = create_app('development')
 
 def seed():
     with app.app_context():
-        db.create_all()
+        print("Dropping old schema and recreating with latest models...")
+        db.drop_all()     # ← removes old tables (including stale schema)
+        db.create_all()   # ← recreates all tables with current models
 
         print("Clearing existing data...")
         BedInventory.query.delete()
