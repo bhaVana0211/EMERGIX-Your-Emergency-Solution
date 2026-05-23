@@ -16,7 +16,7 @@ def create_app(config_name=None):
                 static_folder='static')
     app.config.from_object(config.get(config_name, config['default']))
 
-    # instance folder is already guaranteed by config.py at import time
+    # instance/ folder is guaranteed by config.py (pathlib.mkdir) at import time
 
     # Init extensions
     db.init_app(app)
